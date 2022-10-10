@@ -1,0 +1,3 @@
+Species,Population,NoInds,NoPoints_total,FirstDate,LastDate,PointsPerBird,PointsPerBird_se,DatesPerBird,DatesPerBird_se,SampleRate_mean,SampleRate_se
+RFB,DG,2,2269,2016-06-25,2016-07-01,1134.5,145.5,5.5,0.5,5.475169224753539,0.10117192107979456
+RFB,NI,1,820,2018-07-08,2018-07-11,820,NA,4,NA,5.17770325203252,NA
