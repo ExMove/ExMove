@@ -21,7 +21,7 @@ This code repository is meant as an accessible introduction to analysing trackin
 
 ### Code Description
 #### Main workflow
-- `R/Workflow.R` -  One stop shop for code to import, tidy, clean, process, summarise and visualise tracking data
+- `R/Workflow.R` -  One stop code shop to import, tidy, clean, process, summarise and visualise tracking data
 
 #### Optional & troubleshooting scripts
 - `R/Optional_Processing_CP_trips.R` - Code to process trips for central place data
@@ -30,14 +30,14 @@ This code repository is meant as an accessible introduction to analysing trackin
 
 ### Data Description
 #### Tracking data files
-- `TestData/RFB` - folder containing GPS tracking data files from three Red-footed boobies, from two populations
+- `TestData/RFB` - Folder containing GPS tracking data files from three Red-footed boobies, from two populations
 
 #### Metadata files
-- `TestData/RFBTest_Metadata.csv` - metadata file containing information on the Red-footed boobies dataset
+- `TestData/RFBTest_Metadata.csv` - Metadata file containing information on the Red-footed boobies dataset
 
 ### Documentation Description
-- `Documentation/User_guide.html` - comprehensive guide to the `Workflow.R` code
-- `Documentation/FAQs.html` - frequently asked questions
+- `Documentation/User_guide.html` - Comprehensive guide to the `Workflow.R` code
+- `Documentation/FAQs.html` - Frequently asked questions
 
 
 [^1]: See: [setting up GitHub](https://intro2r.com/setup_git.html) | [cloning a repo](https://intro2r.com/setting-up-a-project-in-rstudio.html) | [using GitHub with RStudio](https://intro2r.com/use_git.html)
