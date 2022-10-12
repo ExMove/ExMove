@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.0.36">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>FAQ’s</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="FAQ's_files/libs/clipboard/clipboard.min.js"></script>
+<script src="FAQ's_files/libs/quarto-html/quarto.js"></script>
+<script src="FAQ's_files/libs/quarto-html/popper.min.js"></script>
+<script src="FAQ's_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="FAQ's_files/libs/quarto-html/anchor.min.js"></script>
+<link href="FAQ's_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="FAQ's_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="FAQ's_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="FAQ's_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="FAQ's_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-full">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link active" data-scroll-target="#introduction">Introduction</a></li>
+  <li><a href="#getting-the-workflow-up-and-running" id="toc-getting-the-workflow-up-and-running" class="nav-link" data-scroll-target="#getting-the-workflow-up-and-running"> <span class="header-section-number">1</span> Getting the workflow up and running</a>
+  <ul class="collapse">
+  <li><a href="#github-issues" id="toc-github-issues" class="nav-link" data-scroll-target="#github-issues"> <span class="header-section-number">1.1</span> GitHub issues</a></li>
+  <li><a href="#using-rstudio-projects-and-here-for-reproducible-filepaths" id="toc-using-rstudio-projects-and-here-for-reproducible-filepaths" class="nav-link" data-scroll-target="#using-rstudio-projects-and-here-for-reproducible-filepaths"> <span class="header-section-number">1.2</span> Using RStudio projects and <code>here</code> for reproducible filepaths</a></li>
+  </ul></li>
+  <li><a href="#data-problems" id="toc-data-problems" class="nav-link" data-scroll-target="#data-problems"> <span class="header-section-number">2</span> Data problems</a>
+  <ul class="collapse">
+  <li><a href="#what-if-i-have-multiple-data-files-for-an-individual" id="toc-what-if-i-have-multiple-data-files-for-an-individual" class="nav-link" data-scroll-target="#what-if-i-have-multiple-data-files-for-an-individual"> <span class="header-section-number">2.1</span> What if I have multiple data files for an individual?</a></li>
+  <li><a href="#what-if-my-tags-have-been-re-deployed-on-multiple-individuals" id="toc-what-if-my-tags-have-been-re-deployed-on-multiple-individuals" class="nav-link" data-scroll-target="#what-if-my-tags-have-been-re-deployed-on-multiple-individuals"> <span class="header-section-number">2.2</span> What if my tags have been re-deployed on multiple individuals?</a></li>
+  </ul></li>
+  <li><a href="#geographic-projection-issues" id="toc-geographic-projection-issues" class="nav-link" data-scroll-target="#geographic-projection-issues"> <span class="header-section-number">3</span> Geographic projection issues</a>
+  <ul class="collapse">
+  <li><a href="#what-is-a-crs" id="toc-what-is-a-crs" class="nav-link" data-scroll-target="#what-is-a-crs"> <span class="header-section-number">3.1</span> What is a CRS?</a></li>
+  <li><a href="#what-does-this-st_intersects-warning-mean" id="toc-what-does-this-st_intersects-warning-mean" class="nav-link" data-scroll-target="#what-does-this-st_intersects-warning-mean"> <span class="header-section-number">3.2</span> What does this st_intersects warning mean?</a></li>
+  </ul></li>
+  <li><a href="#timezones" id="toc-timezones" class="nav-link" data-scroll-target="#timezones"> <span class="header-section-number">4</span> Timezones</a>
+  <ul class="collapse">
+  <li><a href="#how-do-i-find-a-list-of-timezone-codes" id="toc-how-do-i-find-a-list-of-timezone-codes" class="nav-link" data-scroll-target="#how-do-i-find-a-list-of-timezone-codes"> <span class="header-section-number">4.1</span> How do I find a list of timezone codes?</a></li>
+  <li><a href="#converting-between-timezones" id="toc-converting-between-timezones" class="nav-link" data-scroll-target="#converting-between-timezones"> <span class="header-section-number">4.2</span> Converting between timezones</a></li>
+  </ul></li>
+  <li><a href="#resource-limitations" id="toc-resource-limitations" class="nav-link" data-scroll-target="#resource-limitations"> <span class="header-section-number">5</span> Resource limitations</a>
+  <ul class="collapse">
+  <li><a href="#vector-memory-exhausted" id="toc-vector-memory-exhausted" class="nav-link" data-scroll-target="#vector-memory-exhausted"> <span class="header-section-number">5.1</span> Vector memory exhausted</a></li>
+  </ul></li>
+  </ul>
+</nav>
+</div>
+<main class="content column-page-left" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">FAQ’s</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+    
+  </div>
+  
+
+</header>
+
+<div class="cell">
+
+</div>
+<section id="introduction" class="level2 unnumbered">
+<h2 class="unnumbered anchored" data-anchor-id="introduction">Introduction</h2>
+<p>Below is a list of common issues/errors that you might come across when using the workflow we provide. It’s not exhaustive, but hopefully helpful for solving problems that are likely to occur if you are analysing your own data.</p>
+</section>
+<section id="getting-the-workflow-up-and-running" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="getting-the-workflow-up-and-running"><span class="header-section-number">1</span> Getting the workflow up and running</h2>
+<section id="github-issues" class="level3" data-number="1.1">
+<h3 data-number="1.1" class="anchored" data-anchor-id="github-issues"><span class="header-section-number">1.1</span> GitHub issues</h3>
+<p>Using GitHub is not essential for using this workflow — you can download the repo from <a href="https://github.com/AliceTrevail/Code-workshop"><img src="https://img.shields.io/badge/-%20Code▼-brightgreen?style=flat-square.png" class="img-fluid" alt="Code"></a> &gt; <code>Download Zip</code>, unzip to your machine, and start by opening the <code>.Rproj</code> file.</p>
+<p>However, if you want to contribute improvements to the repo, or are just interested in getting to grips with GitHub for your own research projects, there are great resources online for getting started (see: <a href="https://intro2r.com/setup_git.html">setting up GitHub</a> | <a href="https://intro2r.com/setting-up-a-project-in-rstudio.html">cloning a repo</a> | <a href="https://intro2r.com/use_git.html">using GitHub with RStudio</a>).</p>
+</section>
+<section id="using-rstudio-projects-and-here-for-reproducible-filepaths" class="level3" data-number="1.2">
+<h3 data-number="1.2" class="anchored" data-anchor-id="using-rstudio-projects-and-here-for-reproducible-filepaths"><span class="header-section-number">1.2</span> Using RStudio projects and <code>here</code> for reproducible filepaths</h3>
+<p>When we open a <code>.Rproj</code> file (which should be the starting point for this workflow), this opens up a fresh instance of RStudio, with a dedicated project environment and access to all the folders and files contained inside that project folder. If you’re not familiar with using RStudio projects, have a look at <a href="https://r4ds.had.co.nz/workflow-projects.html#rstudio-projects">this section of R for Data Science</a> for a quick explained.</p>
+<p>By combining Rstudio projects with the <a href="https://here.r-lib.org/"><code>here</code></a> package, we can create relative filepaths that work across machines, so you won’t have to edit a complicated filepath to get the code to run (for more info see the <a href="https://here.r-lib.org/articles/here.html">‘Getting started’</a> section of the <code>here</code> documentation).</p>
+</section>
+</section>
+<section id="data-problems" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="data-problems"><span class="header-section-number">2</span> Data problems</h2>
+<section id="what-if-i-have-multiple-data-files-for-an-individual" class="level3" data-number="2.1">
+<h3 data-number="2.1" class="anchored" data-anchor-id="what-if-i-have-multiple-data-files-for-an-individual"><span class="header-section-number">2.1</span> What if I have multiple data files for an individual?</h3>
+<p>Lots of data sets include multiple files for a single individual, when individuals are tracked more than once. The workflow can filter raw tracking data over multiple deployments. For it to work, make sure to check:</p>
+<ul>
+<li>The raw data contain individual <code>ID</code>, read in from the file name</li>
+<li>The metadata includes one row per unique tag deployment per individual</li>
+<li>The metadata contains a column with a unique value for each deployment (e.g., <code>DeployID</code>/<code>Year</code>)</li>
+<li>This identifying column is included in <code>df_metadataslim</code></li>
+</ul>
+<p>When joining the raw data and metadata, the raw data will be duplicated for each row of ID in the metadata (i.e., for each <code>DeployID</code>/<code>Year</code>). When we filter the data to the deployment period only (<code>df_clean</code>) the duplicated rows, where tracking DateTimes are outside of the individual’s deployment period, are removed.</p>
+<p>An example of how to use multiple ID columns in this way is included in the troubleshooting script, named <code>Troubleshoot - multiple ID columns.R</code>.</p>
+</section>
+<section id="what-if-my-tags-have-been-re-deployed-on-multiple-individuals" class="level3" data-number="2.2">
+<h3 data-number="2.2" class="anchored" data-anchor-id="what-if-my-tags-have-been-re-deployed-on-multiple-individuals"><span class="header-section-number">2.2</span> What if my tags have been re-deployed on multiple individuals?</h3>
+<p>Sometimes tags are used multiple times on different individuals, but data are downloaded in a single file per tag. It is much better practice to run all processing in R, rather than splitting the files prior to this workflow. With a couple of tweaks, the workflow can filter raw tracking data files containing multiple deployments:</p>
+<ul>
+<li>Make sure <code>TagID</code> is included in the file name, instead of individual <code>ID</code></li>
+<li>When reading in the raw data, replace <code>ID</code> with <code>TagID</code></li>
+<li>Make sure the metadata includes one row per unique tag deployment per individual</li>
+<li>Make sure the metadata file and <code>df_metadataslim</code> contain both <code>ID</code> and <code>TagID</code></li>
+<li>When combining raw and metadata, left_join by <code>TagID</code>, instead of ID:</li>
+</ul>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>df_metamerged <span class="ot">&lt;-</span> df_raw <span class="sc">%&gt;%</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">left_join</span>(., df_metadataslim, <span class="at">by=</span><span class="st">"TagID"</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>When joining the raw data and metadata, the raw data will be duplicated for each row of TagID in the metadata (i.e., for each <code>ID</code>). When we filter the data to the deployment period only (<code>df_clean</code>) the duplicated rows, where tracking DateTimes are outside of the individual’s deployment period, are removed.</p>
+<p>An example of how to use multiple ID columns in this way is included in the troubleshooting script, named <code>Troubleshoot - multiple ID columns.R</code>.</p>
+</section>
+</section>
+<section id="geographic-projection-issues" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="geographic-projection-issues"><span class="header-section-number">3</span> Geographic projection issues</h2>
+<section id="what-is-a-crs" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="what-is-a-crs"><span class="header-section-number">3.1</span> What is a CRS?</h3>
+<p>Coordinate Reference Systems (or CRS) are the framework we use to represent locations from a spherical earth on a two-dimensional plot. Usually we want to “project” these 3D points to a 2D plot in different ways, depending on the range and scale of our spatial data, and we use CRS codes to do this easily. Two common ESPG codes we use in our workflow are LatLon (<code>4326</code>) and Spherical mercator/WGS (<code>3857</code>), but you can also use the <a href="https://github.com/walkerke/crsuggest"><code>crssuggest</code></a> package to automatically determine the appropriate CRS for your data.</p>
+<p>CRS for <code>sf</code> objects are usually defined at creation (e.g.&nbsp;the <code>crs =</code> argument of <code>st_as_sf</code>), but can also be retrieved or replaced with <a href="https://r-spatial.github.io/sf/reference/st_crs.html"><code>st_crs</code></a>, and transformed from one projection to another with <a href="https://r-spatial.github.io/sf/reference/st_transform.html"><code>st_transform</code></a>.</p>
+<p>More information on these concepts can be found in the sf documentation (see: <a href="https://r-spatial.org/r/2020/06/17/s2.html">The flat earth model</a> | <a href="https://r-spatial.github.io/sf/articles/sf7.html">spherical geometry</a> | <a href="https://r-spatial.github.io/sf/articles/sf6.html">miscellaneous</a>)</p>
+</section>
+<section id="what-does-this-st_intersects-warning-mean" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="what-does-this-st_intersects-warning-mean"><span class="header-section-number">3.2</span> What does this st_intersects warning mean?</h3>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>## although coordinates are longitude/latitude, st_intersects assumes that they are planar</code></pre>
+</div>
+</div>
+<p>Miscellaneous sf questions that could either be addressed here, or just pointed to the <a href="https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about">sf misc page</a></p>
+</section>
+</section>
+<section id="timezones" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="timezones"><span class="header-section-number">4</span> Timezones</h2>
+<section id="how-do-i-find-a-list-of-timezone-codes" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="how-do-i-find-a-list-of-timezone-codes"><span class="header-section-number">4.1</span> How do I find a list of timezone codes?</h3>
+<p>To find the code for a specific timezone, you can search the full list of tz’s that R supports by using <code>Olsonnames()</code>:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(<span class="fu">OlsonNames</span>())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "Africa/Abidjan"     "Africa/Accra"       "Africa/Addis_Ababa"
+[4] "Africa/Algiers"     "Africa/Asmara"      "Africa/Asmera"     </code></pre>
+</div>
+</div>
+<ul>
+<li>Lists of supported timezone codes can also be found online (e.g.&nbsp;<a href="https://en.wikipedia.org/wiki/List_of_tz_database_time_zones">wikipedia</a></li>
+</ul>
+</section>
+<section id="converting-between-timezones" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="converting-between-timezones"><span class="header-section-number">4.2</span> Converting between timezones</h3>
+<p>If you have data from different timezones and you want to convert everything to a common format, you can use <code>with_tz</code> from the <a href="https://lubridate.tidyverse.org/index.html"><code>lubridate</code></a> package (<a href="https://lubridate.tidyverse.org/reference/with_tz.html">example below taken from the function page</a>):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">ymd_hms</span>(<span class="st">"2009-08-07 00:00:01"</span>, <span class="at">tz =</span> <span class="st">"America/New_York"</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">with_tz</span>(x, <span class="st">"GMT"</span>) <span class="co">#converts US DatTime to UK DateTime</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] "2009-08-07 04:00:01 GMT"</code></pre>
+</div>
+</div>
+</section>
+</section>
+<section id="resource-limitations" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="resource-limitations"><span class="header-section-number">5</span> Resource limitations</h2>
+<section id="vector-memory-exhausted" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="vector-memory-exhausted"><span class="header-section-number">5.1</span> Vector memory exhausted</h3>
+<p>When you’re working with thousands or even millions of tracking data points, sometimes you might come across the following message:</p>
+<div class="cell">
+<div class="cell-output cell-output-stderr">
+<pre><code>Error: vector memory exhausted (limit reached?)</code></pre>
+</div>
+</div>
+<p>This essentially means you’ve run out of memory (RAM), and R like a big baby is refusing to carry on. While we’d recommend first trying code testing and optimization, an easy brute-force solution is to increase the amount of memory R can access, by allocating some of your disk alongside existing RAM. We can do this by editing the .Renviron file (which R reads when it starts up):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(usethis) <span class="co">#usethis is a package with a selection of handy functions</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>usethis<span class="sc">::</span><span class="fu">edit_r_environ</span>() <span class="co">#this function allows us to directly edit the .Renviron file from R Studio</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Then add <code>R_MAX_VSIZE=32Gb</code> as a line to the .Renviron file that opens up (32Gb can be changed to whatever you want, but make sure this value includes the amount of RAM on your machine), then save it and restart the R session for changes to take effect. To return to default allocation, run the code a second time and remove the line you added. More detail (and the source of the above solution) can be found on <a href="https://stackoverflow.com/questions/51248293/error-vector-memory-exhausted-limit-reached-r-3-5-0-macos">Stackoverflow</a>.</p>
+</section>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    setTimeout(function() {
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      let href = ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const cites = ref.parentNode.getAttribute('data-cites').split(' ');
+    tippyHover(ref, function() {
+      var popup = window.document.createElement('div');
+      cites.forEach(function(cite) {
+        var citeDiv = window.document.createElement('div');
+        citeDiv.classList.add('hanging-indent');
+        citeDiv.classList.add('csl-entry');
+        var biblioDiv = window.document.getElementById('ref-' + cite);
+        if (biblioDiv) {
+          citeDiv.innerHTML = biblioDiv.innerHTML;
+        }
+        popup.appendChild(citeDiv);
+      });
+      return popup.innerHTML;
+    });
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>
