@@ -12,12 +12,11 @@ This workshop is meant as an accessible introduction to analysing tracking data 
 
 1.  Clone or download this repository to your machine[^1] (see: [setting up GitHub](https://intro2r.com/setup_git.html) | [cloning a repo](https://intro2r.com/setting-up-a-project-in-rstudio.html) | [using GitHub with RStudio](https://intro2r.com/use_git.html))
 2.  Start by opening the `Code-workshop.Rproj` file (which will open a new instance of R studio)
-3.  Open the `test.R` file, and start by running on one of our three example datasets (currently `RFB`, but can be changed to `GAN`, or `SAP`)
+3.  Open the `test.R` file, and start by running on our example dataset (`RFB`)
 4.  For additional guidance on using the workflow code, you can look in `Documentation` for the .html version of the `User guide`
 5.  If you want to run analyses on your own data, start by adding a folder of datafiles and metadata to `TestData` (described in `User guide)
 6.  If you run into issues when using your own data, the `Documentation/FAQs.html` file provides a starting point for common problems
 7.  All outputs of this workflow (such as figures, summaries and processed data) are saved into folders of `TestDataOutputs`
-
 
 ### Code Description
 - `test.R` - WIP file for cleaning tracking data
