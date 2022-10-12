@@ -21,7 +21,7 @@ This code repository is meant as an accessible introduction to analysing trackin
 
 ### Code Description
 #### Main workflow
-- `R/Workflow.R` -  tracking data
+- `R/Workflow.R` -  One stop shop for code to import, tidy, clean, process, summarise and visualise tracking data
 
 #### Optional & troubleshooting scripts
 - `R/Optional_Processing_CP_trips.R` - Code to process trips for central place data
