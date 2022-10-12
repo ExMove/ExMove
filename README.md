@@ -1,4 +1,4 @@
-# The Great Coding Workflow
+# MoveExplore Workflow
 This code repository is meant as an accessible introduction to analysing tracking data using R. We make use of the [tidyverse](https://www.tidyverse.org/packages/) collection and simple features ([sf](https://r-spatial.github.io/sf/index.html)) packages to read, clean and process multiple data files, ready for a range of analyses. Go to the workflow script by clicking [here](R/test.R)
 
 #### _Authors_:
