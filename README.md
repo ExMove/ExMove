@@ -23,6 +23,9 @@ This code repository is meant as an accessible introduction to analysing trackin
 #### Main workflow
 - `R/Workflow.R` -  One stop code shop to import, tidy, clean, process, summarise, and visualise tracking data
 
+#### Shiny app
+- `app/Tracking data diagnostic app.R` - Shiny app for exploring how data filters/cleaning/re-sampling influences the data and derived stats [we hope to make this available online, at this test stage you will need to run it from within your own R console]
+
 #### Optional & troubleshooting scripts
 - `R/Optional_Processing_CP_trips.R` - Code to process trips for central place data
 - `R/Optional_Processing_Resampling.R` - Code to resample data
