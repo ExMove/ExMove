@@ -1,0 +1,4 @@
+﻿Deploy_ID,GPS_tag_ID,Year,Species,Colony,Nest_Lat,Nest_Lon,Deployment_date,Deployment_time,Retrieval_date,Retrieval_time
+01_2011R,272,2011,SAP,Robben,-33.79986667,18.37551667,17/05/2011,15:44,19/05/2011,11:00
+01_2012R,273,2012,SAP,Robben,-33.7987333,18.3739333,19/04/2012,16:28,20/04/2012,23:00
+01_2013R,275,2013,SAP,Robben,-33.7932,18.37,07/05/2013,17:24,08/05/2013,21:00

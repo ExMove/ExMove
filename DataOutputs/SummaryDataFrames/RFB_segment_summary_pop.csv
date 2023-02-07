@@ -1,0 +1,3 @@
+Species,Population,Segment_duration_mean,Segment_duration_se,Total_distance_mean,Total_distance_se,N_Segments_total,N_Segments_perInd_mean,N_Segments_perInd_se
+RFB,DG,3520.1104166666664,35.56047027865809,361380.5452300946,434.8815803417434,5,2.5,1.0298835719535588
+RFB,NI,4240.666666666667,NA,311894.806489163,NA,1,1,NA

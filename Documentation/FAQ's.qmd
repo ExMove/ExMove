@@ -1,0 +1,135 @@
+---
+title: "FAQ's"
+format: 
+  html:
+    page-layout: full
+toc: true #table of contents
+number-sections: true
+---
+
+```{r}
+#| echo: false
+#| output: false
+library(lubridate)
+```
+
+## Introduction {.unnumbered .unnumbered}
+
+Below is a list of common issues/errors that you might come across when using the workflow we provide. It's not exhaustive, but hopefully helpful for solving problems that are likely to occur if you are analysing your own data.
+
+## Getting the workflow up and running
+
+### GitHub issues
+
+Using GitHub is not essential for using this workflow — you can download the repo from [![Code](https://img.shields.io/badge/-%20Code▼-brightgreen?style=flat-square)](https://github.com/AliceTrevail/Code-workshop) > `Download Zip`, unzip to your machine, and start by opening the `.Rproj` file.
+
+However, if you want to contribute improvements to the repo, or are just interested in getting to grips with GitHub for your own research projects, there are great resources online for getting started (see: [setting up GitHub](https://intro2r.com/setup_git.html) | [cloning a repo](https://intro2r.com/setting-up-a-project-in-rstudio.html) | [using GitHub with RStudio](https://intro2r.com/use_git.html)).
+
+### Using RStudio projects and `here` for reproducible filepaths
+
+When we open a `.Rproj` file (which should be the starting point for this workflow), this opens up a fresh instance of RStudio, with a dedicated project environment and access to all the folders and files contained inside that project folder. If you're not familiar with using RStudio projects, have a look at [this section of R for Data Science](https://r4ds.had.co.nz/workflow-projects.html#rstudio-projects) for a quick explained. 
+
+By combining Rstudio projects with the [`here`](https://here.r-lib.org/) package, we can create relative filepaths that work across machines, so you won't have to edit a complicated filepath to get the code to run (for more info see the ['Getting started'](https://here.r-lib.org/articles/here.html) section of the `here` documentation).
+
+## Data problems
+
+### What if I have multiple data files for an individual?
+
+Lots of data sets include multiple files for a single individual, when individuals are tracked more than once. The workflow can filter raw tracking data over multiple deployments. For it to work, make sure to check:
+
+* The raw data contain individual `ID`, read in from the file name
+* The metadata includes one row per unique tag deployment per individual
+* The metadata contains a column with a unique value for each deployment (e.g., `DeployID`/`Year`)
+* This identifying column is included in `df_metadataslim`
+
+When joining the raw data and metadata, the raw data will be duplicated for each row of ID in the metadata (i.e., for each `DeployID`/`Year`). When we filter the data to the deployment period only (`df_clean`) the duplicated rows, where tracking DateTimes are outside of the individual's deployment period, are removed.
+
+An example of how to use multiple ID columns in this way is included in the troubleshooting script, named `Troubleshoot - multiple ID columns.R`.
+
+### What if my tags have been re-deployed on multiple individuals?
+
+Sometimes tags are used multiple times on different individuals, but data are downloaded in a single file per tag. It is much better practice to run all processing in R, rather than splitting the files prior to this workflow. With a couple of tweaks, the workflow can filter raw tracking data files containing multiple deployments:
+
+* Make sure `TagID` is included in the file name, instead of individual `ID`
+* When reading in the raw data, replace `ID` with `TagID`
+* Make sure the metadata includes one row per unique tag deployment per individual
+* Make sure the metadata file and `df_metadataslim` contain both `ID` and `TagID`
+* When combining raw and metadata, left_join by `TagID`, instead of ID:
+
+```{r}
+#| echo: true
+#| eval: false
+df_metamerged <- df_raw %>%
+  left_join(., df_metadataslim, by="TagID") 
+```
+
+When joining the raw data and metadata, the raw data will be duplicated for each row of TagID in the metadata (i.e., for each `ID`). When we filter the data to the deployment period only (`df_clean`) the duplicated rows, where tracking DateTimes are outside of the individual's deployment period, are removed.
+
+An example of how to use multiple ID columns in this way is included in the troubleshooting script, named `Troubleshoot - multiple ID columns.R`.
+
+
+## Geographic projection issues
+
+### What is a CRS?
+
+Coordinate Reference Systems (or CRS) are the framework we use to represent locations from a spherical earth on a two-dimensional plot. Usually we want to "project" these 3D points to a 2D plot in different ways, depending on the range and scale of our spatial data, and we use CRS codes to do this easily. Two common ESPG codes we use in our workflow are LatLon (`4326`) and Spherical mercator/WGS (`3857`), but you can also use the [`crssuggest`](https://github.com/walkerke/crsuggest) package to automatically determine the appropriate CRS for your data.
+
+CRS for `sf` objects are usually defined at creation (e.g. the `crs =` argument of `st_as_sf`), but can also be retrieved or replaced with [`st_crs`](https://r-spatial.github.io/sf/reference/st_crs.html), and transformed from one projection to another with [`st_transform`](https://r-spatial.github.io/sf/reference/st_transform.html).
+
+More information on these concepts can be found in the sf documentation (see: [The flat earth model](https://r-spatial.org/r/2020/06/17/s2.html) | [spherical geometry](https://r-spatial.github.io/sf/articles/sf7.html) | [miscellaneous](https://r-spatial.github.io/sf/articles/sf6.html))
+
+### What does this st_intersects warning mean?
+
+```{r}
+#| echo: false
+message("## although coordinates are longitude/latitude, st_intersects assumes that they are planar")
+```
+
+Miscellaneous sf questions that could either be addressed here, or just pointed to the [sf misc page](https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about)
+
+
+## Timezones
+
+### How do I find a list of timezone codes?
+
+To find the code for a specific timezone, you can search the full list of tz's that R supports by using `Olsonnames()`:
+
+```{r}
+#| echo: true
+head(OlsonNames())
+```
+-   Lists of supported timezone codes can also be found online (e.g. [wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+
+### Converting between timezones
+
+If you have data from different timezones and you want to convert everything to a common format, you can use `with_tz` from the [`lubridate`](https://lubridate.tidyverse.org/index.html) package ([example below taken from the function page](https://lubridate.tidyverse.org/reference/with_tz.html)):
+
+```{r}
+#| echo: true
+x <- ymd_hms("2009-08-07 00:00:01", tz = "America/New_York")
+with_tz(x, "GMT") #converts US DatTime to UK DateTime
+```
+
+
+## Resource limitations
+
+### Vector memory exhausted
+
+When you're working with thousands or even millions of tracking data points, sometimes you might come across the following message:
+
+```{r}
+#| echo: false
+#| message: true
+message("Error: vector memory exhausted (limit reached?)")
+```
+
+This essentially means you've run out of memory (RAM), and R like a big baby is refusing to carry on. While we'd recommend first trying code testing and optimization, an easy brute-force solution is to increase the amount of memory R can access, by allocating some of your disk alongside existing RAM. We can do this by editing the .Renviron file (which R reads when it starts up):
+
+```{r}
+#| echo: true
+#| eval: false
+library(usethis) #usethis is a package with a selection of handy functions
+usethis::edit_r_environ() #this function allows us to directly edit the .Renviron file from R Studio
+```
+
+Then add `R_MAX_VSIZE=32Gb` as a line to the .Renviron file that opens up (32Gb can be changed to whatever you want, but make sure this value includes the amount of RAM on your machine), then save it and restart the R session for changes to take effect. To return to default allocation, run the code a second time and remove the line you added. More detail (and the source of the above solution) can be found on [Stackoverflow](https://stackoverflow.com/questions/51248293/error-vector-memory-exhausted-limit-reached-r-3-5-0-macos).

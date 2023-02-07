@@ -1,0 +1,3 @@
+Species,Population,Trip_duration_mean,Trip_duration_se,Total_distance_mean,Total_distance_se,Max_distance_mean,Max_distance_se,N_Trips_total,N_Trips_perInd_mean,N_Trips_perInd_se
+RFB,DG,600.7145833333334,9.479296775521274,199779.6195350817,278.7902239885774,76325.14479575737,190.71730390011055,6,3,0.8408964152537146
+RFB,NI,244.30416666666667,NA,87198.88964832295,NA,34396.17986736661,NA,4,4,NA

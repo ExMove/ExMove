@@ -1,0 +1,12 @@
+---
+title: "child"
+format: html
+---
+
+## Importing a child document
+
+This text and code come from a child document which exists outside of this Walkthrough.qmd file. We can use this to join different sections from different people.
+
+Added citations will also be added to main text (but only if this document is in the same folder as parent).
+
+We can also add [interactive shiny elements](https://quarto.org/docs/interactive/ojs/shiny.html) if we wanted, but might take a while to figure that out...

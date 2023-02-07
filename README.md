@@ -1,5 +1,5 @@
-# MoveExplore Workflow
-This code repository is meant as an accessible introduction to analysing tracking data using R. We make use of the [tidyverse](https://www.tidyverse.org/packages/) collection and simple features ([sf](https://r-spatial.github.io/sf/index.html)) packages to read, clean and process multiple data files, ready for a range of analyses.
+# The Great Coding Workshop
+This workshop is meant as an accessible introduction to analysing tracking data using R. We make use of the [tidyverse](https://www.tidyverse.org/packages/) collection and simple features ([sf](https://r-spatial.github.io/sf/index.html)) packages to read, clean and process multiple data files, ready for a range of analyses. Go to the workflow script by clicking [here](R/Workflow.R)
 
 #### _Authors_:
 
@@ -10,40 +10,38 @@ This code repository is meant as an accessible introduction to analysing trackin
 
 ### Getting started
 
-1.  Clone[^1] or download[^2] this repository to your machine
-2.  Navigate to the folder containing the cloned/downloaded files on your computer (i.e., don't open the below files from within github)
-3.  Start by opening the `MoveExplore.Rproj` file , which will open a new instance of R studio and make sure that file paths work
-4.  Open the `Workflow.R` file, and start by running on our example dataset (`RFB`)
-5.  Open `User_guide.html` from the `Documentation` folder for additional guidance on using the workflow code
-6.  If you want to run analyses on your own data, start by adding a folder of datafiles and metadata to `TestData` (described in `User guide`)
-7.  If you run into issues when using your own data, the `FAQs.html` file (also in `Documentation` folder) provides a starting point for common problems
-8.  All outputs of this workflow (such as figures, summaries and processed data) are saved into folders of `TestDataOutputs`
+1.  Clone or download this repository to your machine[^1] (see: [setting up GitHub](https://intro2r.com/setup_git.html) | [cloning a repo](https://intro2r.com/setting-up-a-project-in-rstudio.html) | [using GitHub with RStudio](https://intro2r.com/use_git.html))
+2.  Start by opening the `Code-workshop.Rproj` file (which will open a new instance of R studio)
+3.  Open the `Workflow.R` file, and start by running on one of our three example datasets (currently `RFB`, but can be changed to `GAN`, or `SAP`)
+4.  For additional guidance on using the workflow code, you can look in `Documentation` for the .html version of the `User guide`
+5.  If you want to run analyses on your own data, start by adding a folder of datafiles and metadata to `Data` (described in `User guide)
+6.  If you run into issues when using your own data, the `Documentation/FAQs.html` file provides a starting point for common problems
+7.  All outputs of this workflow (such as figures, summaries and processed data) are saved into folders of `DataOutputs`
+
 
 ### Code Description
+
 #### Main workflow
-- `R/Workflow.R` -  One stop code shop to import, tidy, clean, process, summarise, and visualise tracking data
+- `R/Workflow.R` - WIP file for cleaning tracking data
+- `app/Tracking data diagnostic app.R` - Shiny app for exploring how data filters/cleaning/re-sampling influences the data and derived stats
 
-#### Shiny app
-- `app/Tracking data diagnostic app.R` - Shiny app for exploring how data filters/cleaning/re-sampling influences the data and derived stats [we hope to make this available online, at this test stage you will need to run it from within your own R console]
-
-#### Optional & troubleshooting scripts
+#### Optional/troubleshooting scripts
 - `R/Optional_Processing_CP_trips.R` - Code to process trips for central place data
 - `R/Optional_Processing_Resampling.R` - Code to resample data
 - `R/Troubleshoot_Multiple_ID_columns.R` - Code for troubleshooting data with multiple ID columns
 
 ### Data Description
 #### Tracking data files
-- `TestData/RFB` - Folder containing GPS tracking data files from three Red-footed boobies, from two populations
+- `Data/RFB` - folder containing GPS tracking data files from three Red-footed boobies, from two populations
+- `Data/SAP` - folder containing GPS tracking data files from four South African penguins
+- `Data/GWfG` - folder containing GPS tracking data files from four migrating Greenland White-fronted Geese
 
 #### Metadata files
-- `TestData/RFBTest_Metadata.csv` - Metadata file containing information on the Red-footed boobies dataset
+- `Data/RFB_Metadata.csv` - metadata file containing information on the Red-footed boobies dataset
+- `Data/SAP_Metadata.csv` - metadata file containing information on the African penguin dataset
+- `Data/GWfG_Metadata.csv` - metadata file containing information on the Greenland White-fronted Goose dataset
+- `Data/RFB_CPshape` - folder containing shape files for central place of RFB data
 
-### Documentation Description
-- `Documentation/User_guide.html` - Comprehensive guide to the `Workflow.R` code
-- `Documentation/FAQs.html` - Frequently asked questions
-
-
-[^1]: See: [setting up GitHub](https://intro2r.com/setup_git.html) | [cloning a repo](https://intro2r.com/setting-up-a-project-in-rstudio.html) | [using GitHub with RStudio](https://intro2r.com/use_git.html)
-[^2]: The entire repo can be downloaded without cloning (e.g. using 
-[![Code](https://img.shields.io/badge/-%20Code-brightgreen?style=flat-square)](https://github.com/AliceTrevail/Code-workshop) > `Download ZIP`), but any pipeline downloaded this way will be a static copy that won't receive future updates
+[^1]: The entire repo can technically be downloaded without cloning (e.g. using 
+`Code ▾` > `Download ZIP`), but any pipeline downloaded this way will be a static copy that won't receive future updates
 

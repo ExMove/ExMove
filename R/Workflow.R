@@ -6,14 +6,14 @@
 #'  - 0. Pre-flight checks
 #'  - 1. Read in data files
 #'  - 2. Merge with metadata
-#'  - 3. Filtering 1 = remove bad tag values
-#'  - 4. Processing 1 = spatial and temporal calculations
+#'  - 3. Cleaning = remove bad tag values
+#'  - 4. Processing = spatial and temporal calculations
 #'  - 5. Save df_diagnostic = for use in shiny app
-#'  - 6. Filtering 2 = remove erroneous fixes
+#'  - 6. Filtering = remove erroneous fixes
 #'  - 7. Summarise cleaned & filtered tracking data
 #'  - 8. Save df_filtered and summary data
 #'  - 9. Visualisation
-#'  - 10. Processing 2: Optional steps
+#'  - 10. Post Processing : Optional steps
 #'  - 11. Reformat data for upload to public databases
 #'  DEPENDENCIES:
 #'  - Requires tidyverse, data.table and sf to be installed
@@ -45,7 +45,7 @@ library(here) #for reproducible filepaths
 ## - Throughout, we will use some key 'functions' to inspect the data (e.g., 'head' for top rows, 'str' for column types, and 'names' for column names)
 
 ## Data structure:
-## - Data files should all be stored in a specific folder (ideally within TestData)
+## - Data files should all be stored in a specific folder (ideally within Data)
 ## - Tracking data must contain timestamp and at least one other sensor column
 ## - Data for each deployment/individual should be in a separate file
 ## - ID should be in tracking data file name, and should be the same length for all individuals
@@ -78,7 +78,7 @@ library(here) #for reproducible filepaths
 ## Set filepath for folder containing raw data files
 ## NB: this code will try to open all files matching the file pattern within this folder
 ## Therefore, it is best if this folder only contains the raw data files
-filepath <- here("TestData", "RFB") 
+filepath <- here("Data", "RFB") 
 
 ## Define common file pattern to look for
 ## An asterisk (*) matches any character except a forward-slash
@@ -169,7 +169,7 @@ df_combined
 ## Compulsory columns = ID, Date & Time (or single DateTime column?)
 ## Optional columns depending on sensor type, e.g. Lat, Lon, error
 
-df_slim <- data.frame(ID = df_combined$ID,
+df_slim <- data.frame(ID = as.character(df_combined$ID),
                       Date = df_combined$Date,
                       Time = df_combined$Time,
                       Lat = df_combined$Latitude,
@@ -188,11 +188,10 @@ df_slim <- data.frame(ID = df_combined$ID,
 ## USER INPUT END ##
 #------------------#
 
-
 str(df_slim);head(df_slim)
 
 ## Dates and Times
-message("If you see any 'failed to parse' warnings below a date or time has not formatted (we will deal with this later)")
+message("If you see any 'failed to parse' warnings below a date or time has not formatted (we will remove these NA's later)")
 
 ## Parse date and create datetime column
 ## If your date and time are in separate columns:
@@ -202,6 +201,10 @@ df_slim$Date <- lubridate::parse_date_time(df_slim$Date, orders=date_formats) #u
 df_slim$DateTime <- lubridate::parse_date_time(paste(df_slim$Date, df_slim$Time), #use lubridate to parse DateTime 
                                                orders=datetime_formats, #using the datetime_formats object we made earlier
                                                tz=trackingdatatimezone) #can add timezone here with "tz="
+
+## Check which DateTimes failed to parse (if any)
+Fails <- df_slim %>% filter(is.na(DateTime)==T)
+head(Fails)
 
 ## ** Option ** ##
 ## If date and time are already combined in one column (named DateTime), parse to ensure correct format & time zone
@@ -225,7 +228,7 @@ rm(list=ls()[!ls() %in% c("df_raw","date_formats","datetime_formats","trackingda
 #--------------------#
 
 ## set file path to metadata
-filepath_meta <- here("Testdata","RFBTest_Metadata.csv")
+filepath_meta <- here("Data","RFB_Metadata.csv")
 
 ## define metadata date and time format(s) used (for passing to lubridate)
 ## "d"=day as decimal, "m"=month as decimal, "y"=year w/o century, "Y"=year w/ century
@@ -241,7 +244,7 @@ metadatatimezone <- "Indian/Chagos" #specify timezone used for metadata
 
 ## Read in metadata file
 
-df_metadata <- read_csv(filepath_meta)
+df_metadata <- readr::read_csv(filepath_meta)
 names(df_metadata)
 
 #--------------------#
@@ -250,7 +253,7 @@ names(df_metadata)
 
 ## Select necessary comments & coerce column names
 ## Compulsory columns: ID, deployment date & deployment time
-## Optional columns depending on sensor type: e.g. colony, sex, age, central place (CP) Lat, CP Lon
+## Optional columns depending on sensor type: e.g. populaiton, sex, age, central place (CP) Lat, CP Lon
 ## Add or delete columns here as appropriate
 
 ## If you have multiple ID columns, include them here (e.g., TagID/DeployID)
@@ -258,7 +261,7 @@ names(df_metadata)
 ## Similarly, if one tag was re-deployed on multiple individuals
 ## For more information and helpful code, see the FAQ document and troubleshooting script 
 
-df_metadataslim <- data.frame(ID = df_metadata$BirdID,
+df_metadataslim <- data.frame(ID = as.character(df_metadata$BirdID),
                               DeployID = df_metadata$DeployID,
                               DeployDate_local = df_metadata$DeploymentDate, # note in col name that these are recorded in local time
                               DeployTime_local = df_metadata$DeploymentTime, # note in col name that these are recorded in local time
@@ -267,7 +270,7 @@ df_metadataslim <- data.frame(ID = df_metadata$BirdID,
                               CPLat = df_metadata$NestLat,
                               CPLon = df_metadata$NestLong,
                               Species = df_metadata$Species,
-                              Population = df_metadata$Colony,
+                              Population = df_metadata$Population,
                               Age = df_metadata$Age, 
                               BreedingStage = df_metadata$BreedingStage)
 
@@ -321,11 +324,11 @@ df_metamerged <- df_raw %>%
 rm(list=ls()[!ls() %in% c("df_metamerged")]) #specify objects to keep
 
 
-#--------------------#
-##3. Filtering 1  ####
-#--------------------#
+#-----------------#
+##3. Cleaning  ####
+#-----------------#
 
-## This first filtering stage is to remove erroneous data values
+## This data cleaning stage is to remove erroneous data values
 ## E.g., from poor location fixes
 
 #--------------------#
@@ -346,7 +349,7 @@ na_cols <- c("Lat", "Lon", "DateTime", "ID")
 ## USER INPUT END ##
 #------------------#
 
-## Pipe to filter data:
+## Pipe to clean data:
 ## Remove NAs
 ## Remove user-defined no data values in Lat Lon columns
 ## Remove duplicates
@@ -355,18 +358,18 @@ na_cols <- c("Lat", "Lon", "DateTime", "ID")
 
 df_clean <- df_metamerged %>%
               drop_na(all_of(na_cols)) %>% 
-              filter(!Lat %in% No_data_vals & !Lon %in% No_data_vals) %>% # filter bad data values in Lat Lon columns
+              filter(!Lat %in% No_data_vals & !Lon %in% No_data_vals) %>% # remove bad data values in Lat Lon columns
               distinct(DateTime, ID, .keep_all = TRUE) %>% # this might be a problem for ACC data where we don't have milliseconds
-              filter(Deploydatetime < DateTime & DateTime < Retrievedatetime) # filter to deployment period, only
+              filter(Deploydatetime < DateTime & DateTime < Retrievedatetime) # keep deployment period, only
 head(df_clean)
 
 ## Remove intermediate files/objects
 rm(list=ls()[!ls() %in% c("df_clean")]) #specify objects to keep
 
 
-#---------------------#
-##4. Processing 1  ####
-#---------------------#
+#-------------------#
+##4. Processing  ####
+#-------------------#
 
 ## Some useful temporal and spatial calculations on data
 
@@ -403,12 +406,14 @@ df_diagnostic <-  df_clean %>%
   ungroup() %>% #need to ungroup to extract geometry of the whole dataset
   mutate(geometry_GPS = st_transform( #assign geometry and transform to WGS for dist calcs
             st_as_sf(., coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry,
+         geometry_first = st_transform(
+           st_as_sf(slice(., 1), coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry,
          geometry_CP = st_transform( #assign geometry and transform to WGS for dist calcs
             st_as_sf(., coords=c("CPLon","CPLat"), crs=meta_crs), crs = 3857)$geometry) %>% 
   group_by(ID) %>% #back to grouping by ID for calculations per individual
   mutate(dist = st_distance(geometry_GPS, lag(geometry_GPS), by_element = T), #distance travelled from previous fix
          difftime = difftime(DateTime, lag(DateTime), units="secs"),          #time passed since previous fix
-         netdisp = st_distance(geometry_GPS, geometry_GPS[1], by_element = T),    #calculate distance between first location and current location
+         netdisp = st_distance(geometry_GPS, geometry_first, by_element = T),    #calculate distance between first location and current location
          speed = as.numeric(dist)/as.numeric(difftime),                       #calculate speed (distance/time)
          dLon = as.numeric(Lon)-lag(as.numeric(Lon)), #difference in longitude, relative to previous location
          dLat = as.numeric(Lat)-lag(as.numeric(Lat)), #difference in longitude, relative to previous location
@@ -425,20 +430,19 @@ df_diagnostic <-  df_clean %>%
 ## use the below code to calculate bearings relative to first location
 # df_diagnostic <-  df_clean %>%
 #   ungroup() %>% #need to ungroup to extract geometry of the whole dataset
-#   mutate(geometry_GPS = st_transform(
-#             st_as_sf(., coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry) %>% # assign geometry and transform to WGS for dist calcs
+#   mutate(geometry_GPS = st_transform( #assign geometry and transform to WGS for dist calcs
+#       st_as_sf(., coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry,
+#     geometry_first = st_transform(
+#       st_as_sf(slice(., 1), coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry) %>% 
 #   group_by(ID) %>% #back to grouping by ID for calculations per individual
 #   mutate(dist = st_distance(geometry_GPS, lag(geometry_GPS), by_element = T), #distance travelled from previous fix
 #          difftime = difftime(DateTime, lag(DateTime), units="secs"),          #time passed since previous fix
-#          netdisp = st_distance(geometry_GPS, geometry_GPS[1], by_element = T),    #calculate distance between starting location and current location
+#          netdisp = st_distance(geometry_GPS, geometry_first, by_element = T),    #calculate distance between first location and current location
 #          speed = as.numeric(dist)/as.numeric(difftime),                       #calculate speed (distance/time)
 #          dLon = as.numeric(Lon)-lag(as.numeric(Lon)), #difference in longitude, relative to previous location
 #          dLat = as.numeric(Lat)-lag(as.numeric(Lat)), #difference in longitude, relative to previous location
-#          turnangle = atan2(dLon, dLat)*180/pi + (dLon < 0)*360, #angle (in degrees) from previous to current location using formula theta = atan(y/x), where y = change along y axis & x = change along x axis
-#          dLon_net = as.numeric(Lon)-as.numeric(Lon)[1], #difference in longitude between current location and first location
-#          dLat_net = as.numeric(Lat)-as.numeric(Lat)[1], #difference in longitude between current location and first location
-#          netbearing = atan2(dLon_net, dLat_net)*180/pi + (dLon_net < 0)*360) %>% #bearing (in degrees) from first location to current location using formula theta = atan(y/x), where y = change along y axis from first location & x = change along x axis from first location
-#   ungroup() %>% select(-c(geometry_GPS, dLon, dLat, dLon_net, dLat_net)) #ungroup and remove geometries
+#          turnangle = atan2(dLon, dLat)*180/pi + (dLon < 0)*360) %>% #angle (in degrees) from previous to current location using formula theta = atan(y/x), where y = change along y axis & x = change along x axis
+#   ungroup() %>% select(-c(geometry_GPS, dLon, dLat)) #ungroup and remove geometries
 
 
 #---------------------------#
@@ -456,7 +460,7 @@ df_diagnostic <-  df_clean %>%
 species_code <- "RFB"
 
 ## Define file path for saved file
-filepath_dfout <- here("TestDataOutputs","WorkingDataFrames")
+filepath_dfout <- here("DataOutputs","WorkingDataFrames")
 
 ## Define file name for saved file
 ## here, we use the species code and "_diagnostic"
@@ -481,11 +485,11 @@ write_csv(df_diagnostic, file = here(filepath_dfout, paste0(filename_dfout,".csv
 rm(list=ls()[!ls() %in% c("df_diagnostic")]) #specify objects to keep
 
 
-#-------------------#
-##6. Filtering 2 #### 
-#-------------------#
+#-----------------#
+##6. Filtering #### 
+#-----------------#
 
-## This second filtering stage is designed to remove outliers in the data
+## This filtering stage is designed to remove outliers in the data
 ## You can use outputs from the shiny app to inform these choices
 
 ## If you don't need to filter for outliers, skip this step and keep using df_diagnostic
@@ -509,7 +513,9 @@ filter_speed <- 20
 
 ## Define net displacement filter and specify units
 ## Any points further away from the first tracking point will be removed
-filter_netdisp_dist <- 200
+## If you want to retain points no matter how far, then choose a value larger than max(df_diagnostic$netdisp)
+max(df_diagnostic$netdisp)
+filter_netdisp_dist <- 300
 filter_netdist_units <- "km" # e.g., "m", "km"
 
 
@@ -561,11 +567,11 @@ grouping_factors_indlevel <- c("ID")
 #------------------#
 
 ## function to calculate standard error
-se <- function(x) sqrt(var(x, na.rm = T) / length(x[!is.na(x)]))
+se <- function(x) sqrt(sd(x, na.rm = T) / length(x[!is.na(x)]))
 
 ## create a summary table of individual-level summary statistics
 df_summary_ind <- df_filtered %>%
-  group_by(across(c(grouping_factors_poplevel, grouping_factors_indlevel))) %>%
+  group_by(across(c(all_of(grouping_factors_poplevel), all_of(grouping_factors_indlevel)))) %>%
   summarise(NoPoints = NROW(ID), # number of fixes
             NoUniqueDates = length(unique(Date)), # number of tracking dates
             FirstDate = as.Date(min(Date)), # first tracking date
@@ -607,10 +613,10 @@ rm(list=ls()[!ls() %in% c("df_filtered", "df_summary_ind", "df_summary_pop")]) #
 species_code <- "RFB"
 
 ## Define file path for df_filtered
-filepath_filtered_out <- here("TestDataOutputs","WorkingDataFrames")
+filepath_filtered_out <- here("DataOutputs","WorkingDataFrames")
 
 ## Define file path for summary file
-filepath_summary_out <- here("TestDataOutputs","SummaryDataFrames")
+filepath_summary_out <- here("DataOutputs","SummaryDataFrames")
 
 ## Define file names for saved files
 ## here, we use the species code and "_summary_" followed by ind (individual level) or pop (population level)
@@ -652,7 +658,7 @@ units <- "mm"
 dpi <- 300
 
 ## define filepath to read out plots 
-out_path <- here("TestDataOutputs","Figures")
+out_path <- here("DataOutputs","Figures")
 
 ## Define species code for figure names
 species_code <- "RFB"
@@ -724,8 +730,8 @@ map_base <- ggplot() +
   geom_point(data = df_plotting, aes(x = CPLon, y = CPLat),
              colour = "#FF3300", fill ="#FF3300", shape = 23, size = 2) +
   # set plot limits
-  coord_sf(xlim = c(minlon, maxlon), 
-           ylim = c(minlat, maxlat), crs = 4326) +
+  coord_sf(xlim = c(minlon-0.1, maxlon+0.1), 
+           ylim = c(minlat-0.1, maxlat+0.1), crs = 4326, expand = F) +
   # add labels
   labs(x = "Longitude", y = "Latitude") +
   theme(axis.text=element_text(colour="black"),
@@ -754,7 +760,7 @@ map_individuals <- map_base +
   scale_colour_gradient2(name = "Speed", low = "blue", mid = "white", high = "red", 
                          midpoint = (max(df_plotting$speed,na.rm=TRUE)/2)) +
   ##facet for individual
-  facet_wrap(~ ID, ncol = n_distinct(df_plotting$ID))
+  facet_wrap(~ ID, ncol = round(sqrt(n_distinct(df_plotting$ID))))
 map_individuals
 
 
@@ -893,9 +899,9 @@ ggsave(plot = step_hist,
 )
 
 
-#------------------------------------#
-##10. Processing 2: Optional steps ####
-#------------------------------------#
+#----------------------------------------#
+##10. Post processing: Optional steps ####
+#----------------------------------------#
 
 ## At this point we may be ready to start analysing our processed movement data
 ## However in some (many) instances additional processing may be necessary
@@ -911,39 +917,24 @@ ggsave(plot = step_hist,
 ## USER INPUT START ##
 #--------------------#
 
-## Here we read the output files of those optional processing steps back into the main workflow
-## First set the filepath as appropriate depending on which optional scripts you used
-## Delete as appropriate
+## Here we read the output files of those optional processing scripts back into the workflow
+## If no optional processing has been performed, we read back in the saved version of df_filtered
+## If optional processing has been performed - change the filepath to your most recent data file
 
-### SAVE OUT AND READ BACK IN DF DIAGNOSTIC ABOVE
-
-filepath_resampled <- "TestDataOutputs/WorkingDataFrames/RFB_resampled.csv"
-
-filepath_segmented <- "TestDataOutputs/WorkingDataFrames/RFB_segmented.csv"
-
-filepath_trips <- "TestDataOutputs/WorkingDataFrames/RFB_trips.csv"
+filepath_final <- here("DataOutputs","WorkingDataFrames","RFB_filtered.csv")
 
 ## we then read in the relevant data frame using the filepaths defined above
-## delete as appropriate
 
-df_final <- read_csv(filepath_resampled)
-
-df_final <- read_csv(filepath_segmented)
-
-df_final  <- read_csv(filepath_trips)
-
-## if no optional processing undertaken, use df_diagnostic / df_filtered
-df_final <- df_diagnostic
-df_final <- df_filtered
+df_final <- read_csv(filepath_final)
 
 #-----------------#
 ##USER INPUT END##
 #-----------------#
 
 
-#-----------------------------------------------------#
+#------------------------------------------------------#
 ##11. Reformat data for upload to public databases  ####
-#-----------------------------------------------------#
+#------------------------------------------------------#
 
 ## Many researchers will choose to store their processed biologging data in an online repository
 ## As the use of bio-logging has proliferated, a number of public databases have been developed
@@ -975,7 +966,7 @@ df_movebank <- df_final %>%
 ## The STDB requires specific columns
 ## At the time of writing, there isn't a process for uploading multiple grouping factors in one data file (e.g., species/population)
 ## Each level of the grouping factor therefore needs to be saved in it's own file
-## Metadata (species, colony location, etc., are added in the web portal)
+## Metadata (species, population location, etc., are added in the web portal)
 ## Different deployment periods can presumably be uploaded together, as they are distinguishable by date
 
 ## The STDB provide this template for data:
@@ -991,15 +982,20 @@ df_movebank <- df_final %>%
 # Latitude	    user defined	  Decimal Degrees														
 # Longitude	    user defined	  Decimal Degrees														
 # Equinox	      limited choice	Yes/No	          yes	no												
-# ArgosQuality	user defined	  String	          3	2	1	0	A	B	Z							
+# ArgosQuality	user defined	  String	          3	2	1	0	A	B	Z	
 
 
 ## Below, we provide an example for GPS tracking data of a central place forager
 ## We have read in df_trips from 'Central place trips.R' as df_final
+## NB: this will only work on data where trips have been defined
 
 ## remind ourselves of the data structure
 df_final
 names(df_final)
+
+#--------------------#
+## USER INPUT START ##
+#--------------------#
 
 ## Define parameters:
 
@@ -1010,7 +1006,12 @@ tz_data <- "GMT"
 grouping_factors <- c("Species", "Population") 
 
 ## File path for saving data
-filepath_dfout <- here("TestDataOutputs","WorkingDataFrames", "RFB_SeabirdTrackingDataBaseFormat") 
+filepath_dfout <- here("DataOutputs","WorkingDataFrames", "RFB_SeabirdTrackingDataBaseFormat") 
+
+#-----------------#
+##USER INPUT END##
+#-----------------#
+
 
 ## Re-format data for STDB, but retain grouping factor columns
 df_STDB <- df_final %>%
@@ -1019,7 +1020,7 @@ df_STDB <- df_final %>%
   mutate(DateTimeGMT = with_tz(ymd_hms(DateTime, tz = tz_data), "GMT"), # make column of DateTime in GMT
          DateGMT = as_date(DateTimeGMT), # use lubridate to extract date, only
          TimeGMT = hms::as_hms(DateTimeGMT)) %>% #use hms from within tidyverse to extract time, only
-  # rename columns as necessary
+  # rename columns as necessary (e.g. remove "TrackID = TripID," if trips have not been defined)
   rename(BirdID = ID,
          BreedStage = BreedingStage,
          TrackID = TripID,

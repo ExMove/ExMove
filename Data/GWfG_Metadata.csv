@@ -1,0 +1,5 @@
+TagID,BirdID,DeployID,Species,Population,Age,BreedingStage,DeploymentDate,DeploymentTime,RetrievalDate,RetrievalTime,NestLat,NestLong
+17766,17766,1,GWFG,Wexf,Adult,NA,16/03/2019,12:00:00,15/05/2019,12:00:00,NA,NA
+17769,17769,1,GWFG,Wexf,Adult,NA,21/03/2018,12:00:00,15/05/2018,12:00:00,NA,NA
+17806,17806,1,GWFG,Islay,Adult,NA,29/03/2019,12:00:00,15/05/2019,12:00:00,NA,NA
+17824,17824,1,GWFG,Islay,Adult,NA,27/03/2019,12:00:00,15/05/2019,12:00:00,NA,NA
