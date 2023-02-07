@@ -2,3 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
+echo ".DS_Store" >> ~/.gitignore_global
+echo "._.DS_Store" >> ~/.gitignore_global
+echo "**/.DS_Store" >> ~/.gitignore_global
+echo "**/._.DS_Store" >> ~/.gitignore_globalgit config --global core.excludesfile ~/.gitignore_global
