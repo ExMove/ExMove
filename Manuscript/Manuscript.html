@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.269">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>ExMove: An open-source toolkit for processing and exploring bio-logging data in R</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+}
+.hanging div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}
+</style>
+
+
+<script src="Manuscript_files/libs/clipboard/clipboard.min.js"></script>
+<script src="Manuscript_files/libs/quarto-html/quarto.js"></script>
+<script src="Manuscript_files/libs/quarto-html/popper.min.js"></script>
+<script src="Manuscript_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="Manuscript_files/libs/quarto-html/anchor.min.js"></script>
+<link href="Manuscript_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="Manuscript_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="Manuscript_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="Manuscript_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="Manuscript_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+<script src="Manuscript_files/libs/quarto-diagram/mermaid.min.js"></script>
+<script src="Manuscript_files/libs/quarto-diagram/mermaid-init.js"></script>
+<link href="Manuscript_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
+
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#abstract" id="toc-abstract" class="nav-link active" data-scroll-target="#abstract"><span class="toc-section-number">1</span>  Abstract</a></li>
+  <li><a href="#introduction" id="toc-introduction" class="nav-link" data-scroll-target="#introduction"><span class="toc-section-number">2</span>  Introduction</a></li>
+  <li><a href="#best-practices" id="toc-best-practices" class="nav-link" data-scroll-target="#best-practices"><span class="toc-section-number">3</span>  Best practices</a>
+  <ul class="collapse">
+  <li><a href="#directory-structure" id="toc-directory-structure" class="nav-link" data-scroll-target="#directory-structure"><span class="toc-section-number">3.1</span>  Directory structure</a></li>
+  <li><a href="#data-structure" id="toc-data-structure" class="nav-link" data-scroll-target="#data-structure"><span class="toc-section-number">3.2</span>  Data structure</a></li>
+  <li><a href="#code-structure" id="toc-code-structure" class="nav-link" data-scroll-target="#code-structure"><span class="toc-section-number">3.3</span>  Code structure</a></li>
+  </ul></li>
+  <li><a href="#overview-of-the-workflow-structure" id="toc-overview-of-the-workflow-structure" class="nav-link" data-scroll-target="#overview-of-the-workflow-structure"><span class="toc-section-number">4</span>  Overview of the workflow structure</a>
+  <ul class="collapse">
+  <li><a href="#import-data-metadata-and-combine" id="toc-import-data-metadata-and-combine" class="nav-link" data-scroll-target="#import-data-metadata-and-combine"><span class="toc-section-number">4.1</span>  Import data, metadata, and combine</a></li>
+  <li><a href="#cleaning" id="toc-cleaning" class="nav-link" data-scroll-target="#cleaning"><span class="toc-section-number">4.2</span>  Cleaning</a></li>
+  <li><a href="#processing" id="toc-processing" class="nav-link" data-scroll-target="#processing"><span class="toc-section-number">4.3</span>  Processing</a></li>
+  <li><a href="#enter-the-shiny-app" id="toc-enter-the-shiny-app" class="nav-link" data-scroll-target="#enter-the-shiny-app"><span class="toc-section-number">4.4</span>  Enter the Shiny app</a></li>
+  <li><a href="#filter" id="toc-filter" class="nav-link" data-scroll-target="#filter"><span class="toc-section-number">4.5</span>  Filter</a></li>
+  <li><a href="#summarise" id="toc-summarise" class="nav-link" data-scroll-target="#summarise"><span class="toc-section-number">4.6</span>  Summarise</a></li>
+  <li><a href="#visualisation" id="toc-visualisation" class="nav-link" data-scroll-target="#visualisation"><span class="toc-section-number">4.7</span>  Visualisation</a></li>
+  <li><a href="#post-processing-optional" id="toc-post-processing-optional" class="nav-link" data-scroll-target="#post-processing-optional"><span class="toc-section-number">4.8</span>  Post-processing (optional)</a></li>
+  <li><a href="#standardising-output-for-tracking-databases" id="toc-standardising-output-for-tracking-databases" class="nav-link" data-scroll-target="#standardising-output-for-tracking-databases"><span class="toc-section-number">4.9</span>  Standardising output for tracking databases</a></li>
+  </ul></li>
+  <li><a href="#tools-and-additional-practical-resources" id="toc-tools-and-additional-practical-resources" class="nav-link" data-scroll-target="#tools-and-additional-practical-resources"><span class="toc-section-number">5</span>  Tools and additional practical resources</a>
+  <ul class="collapse">
+  <li><a href="#preparing-your-machine" id="toc-preparing-your-machine" class="nav-link" data-scroll-target="#preparing-your-machine"><span class="toc-section-number">5.1</span>  Preparing your machine</a></li>
+  <li><a href="#updating-packages" id="toc-updating-packages" class="nav-link" data-scroll-target="#updating-packages"><span class="toc-section-number">5.2</span>  Updating packages</a></li>
+  <li><a href="#using-github" id="toc-using-github" class="nav-link" data-scroll-target="#using-github"><span class="toc-section-number">5.3</span>  Using GitHub</a></li>
+  <li><a href="#user-guide" id="toc-user-guide" class="nav-link" data-scroll-target="#user-guide"><span class="toc-section-number">5.4</span>  User guide</a></li>
+  <li><a href="#shiny-app" id="toc-shiny-app" class="nav-link" data-scroll-target="#shiny-app"><span class="toc-section-number">5.5</span>  Shiny app</a></li>
+  <li><a href="#faqs" id="toc-faqs" class="nav-link" data-scroll-target="#faqs"><span class="toc-section-number">5.6</span>  FAQ’s</a></li>
+  </ul></li>
+  <li><a href="#try-it-yourself" id="toc-try-it-yourself" class="nav-link" data-scroll-target="#try-it-yourself"><span class="toc-section-number">6</span>  Try it yourself</a>
+  <ul class="collapse">
+  <li><a href="#red-footed-boobies-datset" id="toc-red-footed-boobies-datset" class="nav-link" data-scroll-target="#red-footed-boobies-datset"><span class="toc-section-number">6.1</span>  Red-footed boobies datset</a></li>
+  <li><a href="#greenland-white-fronted-geese" id="toc-greenland-white-fronted-geese" class="nav-link" data-scroll-target="#greenland-white-fronted-geese"><span class="toc-section-number">6.2</span>  Greenland white-fronted geese</a></li>
+  <li><a href="#african-penguins" id="toc-african-penguins" class="nav-link" data-scroll-target="#african-penguins"><span class="toc-section-number">6.3</span>  African penguins</a></li>
+  </ul></li>
+  <li><a href="#acknowledgments" id="toc-acknowledgments" class="nav-link" data-scroll-target="#acknowledgments"><span class="toc-section-number">7</span>  Acknowledgments</a></li>
+  <li><a href="#author-contributions" id="toc-author-contributions" class="nav-link" data-scroll-target="#author-contributions"><span class="toc-section-number">8</span>  Author contributions</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">ExMove: An open-source toolkit for processing and exploring bio-logging data in R</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Authors</div>
+    <div class="quarto-title-meta-contents">
+             <p>Alice Trevail <a href="https://orcid.org/0000-0002-6459-5213" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+             <p>Stephen Lang <a href="https://orcid.org/0000-0001-5820-4346" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+             <p>Luke Ozsanlav-Harris <a href="https://orcid.org/0000-0003-3889-6722" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+             <p>Liam Langley <a href="https://orcid.org/0000-0001-9754-6517" class="quarto-title-author-orcid"> <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAA2ZpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuMC1jMDYwIDYxLjEzNDc3NywgMjAxMC8wMi8xMi0xNzozMjowMCAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvc1R5cGUvUmVzb3VyY2VSZWYjIiB4bWxuczp4bXA9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC8iIHhtcE1NOk9yaWdpbmFsRG9jdW1lbnRJRD0ieG1wLmRpZDo1N0NEMjA4MDI1MjA2ODExOTk0QzkzNTEzRjZEQTg1NyIgeG1wTU06RG9jdW1lbnRJRD0ieG1wLmRpZDozM0NDOEJGNEZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wTU06SW5zdGFuY2VJRD0ieG1wLmlpZDozM0NDOEJGM0ZGNTcxMUUxODdBOEVCODg2RjdCQ0QwOSIgeG1wOkNyZWF0b3JUb29sPSJBZG9iZSBQaG90b3Nob3AgQ1M1IE1hY2ludG9zaCI+IDx4bXBNTTpEZXJpdmVkRnJvbSBzdFJlZjppbnN0YW5jZUlEPSJ4bXAuaWlkOkZDN0YxMTc0MDcyMDY4MTE5NUZFRDc5MUM2MUUwNEREIiBzdFJlZjpkb2N1bWVudElEPSJ4bXAuZGlkOjU3Q0QyMDgwMjUyMDY4MTE5OTRDOTM1MTNGNkRBODU3Ii8+IDwvcmRmOkRlc2NyaXB0aW9uPiA8L3JkZjpSREY+IDwveDp4bXBtZXRhPiA8P3hwYWNrZXQgZW5kPSJyIj8+84NovQAAAR1JREFUeNpiZEADy85ZJgCpeCB2QJM6AMQLo4yOL0AWZETSqACk1gOxAQN+cAGIA4EGPQBxmJA0nwdpjjQ8xqArmczw5tMHXAaALDgP1QMxAGqzAAPxQACqh4ER6uf5MBlkm0X4EGayMfMw/Pr7Bd2gRBZogMFBrv01hisv5jLsv9nLAPIOMnjy8RDDyYctyAbFM2EJbRQw+aAWw/LzVgx7b+cwCHKqMhjJFCBLOzAR6+lXX84xnHjYyqAo5IUizkRCwIENQQckGSDGY4TVgAPEaraQr2a4/24bSuoExcJCfAEJihXkWDj3ZAKy9EJGaEo8T0QSxkjSwORsCAuDQCD+QILmD1A9kECEZgxDaEZhICIzGcIyEyOl2RkgwAAhkmC+eAm0TAAAAABJRU5ErkJggg=="></a></p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<p><strong><em>Keywords:</em></strong> Animal movement, Tracking data, Reproducibility, Code sharing, User guide, Cheat sheet, GPS, geolocator, ARGOS</p>
+<p>Word count: 4071</p>
+<section id="abstract" class="level2" data-number="1">
+<h2 data-number="1" class="anchored" data-anchor-id="abstract"><span class="header-section-number">1</span> Abstract</h2>
+<p>Ongoing technological advances have led to a rapid increase in the number and scope of bio-logging studies. In response, many software tools have been developed to analyze animal movement data. These tools generally focus on movement modelling, but the steps required to clean data from raw bio-logging files have been largely ignored. Such pre-processing steps are often time-consuming and involve a steep learning curve. Moreover, decisions made at this early stage can substantially influence subsequent analyses. Here we present an open-access, reproducible toolkit written in the programming language R for processing raw data files into a single cleaned data set. The toolkit is generalizable to different data formats, uses modern ‘tidy coding’ practices, and has minimal dependencies. We provide a set of key principles and transparent, flexible code to flatten the learning curve associated with bio-logging data processing, and produce robust, reproducible datasets. Overall, we envision our toolkit as a time-saving approach that provides a common starting point for anyone conducting animal movement analyses.</p>
+</section>
+<section id="introduction" class="level2" data-number="2">
+<h2 data-number="2" class="anchored" data-anchor-id="introduction"><span class="header-section-number">2</span> Introduction</h2>
+<p>We live in a golden age of animal-tracking data. Recent technological advancements have reduced the size and cost of bio-logging devices, with more species and individuals tracked over longer periods, allowing researchers to expand the frontiers of ecological research <span class="citation" data-cites="wilmers2015 kays2015 bodey2017">(<a href="#ref-wilmers2015" role="doc-biblioref">Wilmers et al. 2015</a>; <a href="#ref-kays2015" role="doc-biblioref">Kays et al. 2015</a>; <a href="#ref-bodey2017" role="doc-biblioref">Bodey et al. 2017</a>)</span>. These studies have generated a rapidly-expanding volume of data <span class="citation" data-cites="gupte2021a">(<a href="#ref-gupte2021a" role="doc-biblioref">Gupte et al. 2021</a>)</span>, and a range of software tools have been developed to facilitate animal movement research <span class="citation" data-cites="joo2019a">(<a href="#ref-joo2019a" role="doc-biblioref">Joo et al. 2019</a>)</span>. However, these tools largely focus on conducting movement analyses of complex data, and the upstream filtering and processing steps required to generate an appropriate cleaned data set have been given scant attention <span class="citation" data-cites="gupte2021a">(however see <a href="#ref-gupte2021a" role="doc-biblioref">Gupte et al. 2021</a>)</span>. Such pre-analysis steps are universal when working with bio-logging data, and often involve the determination of key parameters which can strongly influence the conclusions drawn from subsequent analysis. Moreover, these steps are time consuming, often involving a steep learning curve, and large amounts of time and associated grant funding are lost as unacquainted researchers re-run these steps and in many cases attempt to re-invent what should be a standardized and reproducible process.</p>
+<p>Some research groups have made important progress in developing tools for pre-processing. Gupte <em>et al</em>. <span class="citation" data-cites="gupte2021a">(<a href="#ref-gupte2021a" role="doc-biblioref">2021</a>)</span> provide an informative framework outlining the key pre-processing steps involved in processing high-throughput bio-logging data, alongside a pipeline and R package to implement these steps. However, the <code>atlastools</code> package they develop wraps these steps up into opaque functions which may be challenging for less-experienced analysts to de-bug. Additionally, bespoke functions, whilst convenient in many instances, essentially constitute a black box and may provide an impediment to learning. Over-reliance on existing functions may hinder researchers in their effort to develop a foundational understanding of their bio-logging data and the steps required to process it. MoveApps <span class="citation" data-cites="kölzsch2022a">(<a href="#ref-kölzsch2022a" role="doc-biblioref">Kölzsch et al. 2022</a>)</span> takes an alternative approach to the problem, providing an online user interface where researchers can upload and explore their own tracking data. This provides an incredibly useful tool to rapidly visualize bio-logging data, especially for researchers who lack programming experience, however the background code is not immediately apparent to users and this again limits the scope for learning.</p>
+<p>Existing approaches demonstrate the need for tools that integrate data processing goals with user learning and development <span class="citation" data-cites="brunsdon2020">(<a href="#ref-brunsdon2020" role="doc-biblioref">Brunsdon and Comber 2020</a>)</span>. We fill this gap by providing foundational code to start analysing tracking data. Our methods focus on accessible and robust data processing and thorough interrogation of user-defined parameters, both of which have important downstream consequences for biological inference. By sharing transparent code, we equip users with tools to learn from and adapt for their own analyses. This will make processing tracking data accessible to a wider audience, breaking down financial barriers associated with expensive training courses, while simultaneously flattening the learning curve for ecologists everywhere. Limited learning opportunities and confidence in code quality have contributed to historically low uptake of journal-mandated code archiving <span class="citation" data-cites="baker2016">(<a href="#ref-baker2016" role="doc-biblioref">Baker 2016</a>)</span>, and this will further contribute towards more open-access attitudes in science <span class="citation" data-cites="potts2022 barnes2010a">(<a href="#ref-potts2022" role="doc-biblioref">Potts and Börger 2022</a>; <a href="#ref-barnes2010a" role="doc-biblioref">Barnes 2010</a>)</span>.</p>
+<p>Here we provide a pipeline written in the programming language R for pre-processing raw data from a range of bio-logging devices into a single cleaned data set ready for bespoke analysis. The pipeline provides a quick and reproducible way to perform these initial steps required for any analysis of bio-logging data and has built in flexibility, with sections for user input facilitating its application to a variety of device-types, such as GPS, GLS and Argos data and specific use cases. We use a handful of well-maintained core packages including <code>here</code>, <code>tidyverse</code> &amp; <code>sf</code>, to limit dependencies and maximise stability <span class="citation" data-cites="here-3 tidyverse sf-2">(<a href="#ref-here-3" role="doc-biblioref">Müller 2020a</a>; <a href="#ref-tidyverse" role="doc-biblioref">Wickham et al. 2019a</a>; <a href="#ref-sf-2" role="doc-biblioref">Pebesma 2018a</a>)</span>. The widespread adoption of tidy-style syntax and the deprecation of the popular <code>sp</code> package for spatial analyses, we consider the development of pipelines using these packages to be particularly timely. Additionally it is based on annotated code chunks rather than functions, providing a learning tool for less experienced researchers which prioritizes readability and user understanding. The pipeline is also accompanied by a detailed walkthrough document to aid understanding of the process. Finally, we provide a shiny app as a key visualisation tool which can aid users in the determination of appropriate parameters when filtering and processing their bio-logging data. We envision our pipeline as a time-saving tool, with the resulting clean datasets acting as a reproducible and robust common starting point upon which researchers can build their own bespoke analyses of animal movement.</p>
+</section>
+<section id="best-practices" class="level2" data-number="3">
+<h2 data-number="3" class="anchored" data-anchor-id="best-practices"><span class="header-section-number">3</span> Best practices</h2>
+<p>Producing open-access and reproducible analyses is now a common goal for scientific research <span class="citation" data-cites="mckiernan2016 culina2020">(<a href="#ref-mckiernan2016" role="doc-biblioref">McKiernan et al. 2016</a>; <a href="#ref-culina2020" role="doc-biblioref">Culina et al. 2020</a>)</span>, and there are various ways to version and publicly share code (such as git &amp; github). Here, we outline the core best practices that we have followed to help to ensure that the code itself is reliable and can be reproduced by others.</p>
+<section id="directory-structure" class="level3" data-number="3.1">
+<h3 data-number="3.1" class="anchored" data-anchor-id="directory-structure"><span class="header-section-number">3.1</span> Directory structure</h3>
+<p>Directory structure relates to how folders and sub-folders are arranged. We recommend following the directory structure outlined by Figueiredo <em>et al.</em> <span class="citation" data-cites="figueiredo2022">(<a href="#ref-figueiredo2022" role="doc-biblioref">2022</a>)</span>, which suggests that all data required for a project should be inside a single directory, with separate sub-folders for raw data, processed data, and outputs (such as tables and figures). Folders are best named in snakecase format (e.g.&nbsp;“raw_data”) to avoid issues with encoding spaces in filepaths <span class="citation" data-cites="trisovic2022">(<a href="#ref-trisovic2022" role="doc-biblioref">Trisovic et al. 2022</a>)</span>. For R Studio users, this folder structure is enhanced with the use of R Studio projects, whose location denotes the ‘top’ of the directory allowing for shorter, reproducible filepaths. We also use the <code>here</code> package to maximise reproducibility between operating systems that use different file path delimiters <span class="citation" data-cites="here">(<a href="#ref-here" role="doc-biblioref">Müller 2020b</a>)</span>. When used in combination, these best practices ensure that when sharing or archiving a single project folder, other users have all the data required to recreate your analyses, and results will be reproducible regardless of their machine.</p>
+</section>
+<section id="data-structure" class="level3" data-number="3.2">
+<h3 data-number="3.2" class="anchored" data-anchor-id="data-structure"><span class="header-section-number">3.2</span> Data structure</h3>
+<p>Raw bio-logging data should be saved into a “raw_data” folder in the exact format they are downloaded or decompressed from devices (i.e.&nbsp;completely unaltered). These files should be considered read-only, and must not be opened with other software (such as Excel) which can cause problems in changing data formats. Data from different devices will usually arrive in separate files and as such there should be one file per individual (though some cases and data sources may mean that data are combined in some way). Metadata files are generally also saved in raw_data, and are usually a single file per dataset containing all additional data for each tag deployment, for example individual ID, tag ID, tagging location/time or location of central place.</p>
+</section>
+<section id="code-structure" class="level3" data-number="3.3">
+<h3 data-number="3.3" class="anchored" data-anchor-id="code-structure"><span class="header-section-number">3.3</span> Code structure</h3>
+<p>The tidyverse is an increasingly-used approach for coding in R, with a collection of core packages that use consistent grammar and data structures that allows user to quickly create analyses that can be easily understood by others <span class="citation" data-cites="wickham2019">(<a href="#ref-wickham2019" role="doc-biblioref">Wickham et al. 2019b</a>)</span>. To follow tidyverse coding practices, data should adhere to three core rules: i) every variable must have its own column, ii) every observation must have its own row, and iii) every value must have its own cell <span class="citation" data-cites="wickham2014">(<a href="#ref-wickham2014" role="doc-biblioref">Wickham 2014</a>)</span>. Tracking data inherently follow this tidy structure, with rows as observations, with at minimum require a column for time, plus additional columns for variables associated with each time point (e.g.&nbsp;latitude and longitude, depth, temp etc). Finally, focusing on using core tidyr packages (specifically <code>tidyverse</code> and <code>sf</code>), helps to maximise code longevity.</p>
+</section>
+</section>
+<section id="overview-of-the-workflow-structure" class="level2" data-number="4">
+<h2 data-number="4" class="anchored" data-anchor-id="overview-of-the-workflow-structure"><span class="header-section-number">4</span> Overview of the workflow structure</h2>
+<p>Here, we provide an outline of the data workflow structure and methods (Figure 1) that enable a user to import raw tracking data and metadata, perform basic to advanced cleaning, filtering and processing steps, ready for further scientific analysis. We will introduce the required data structure and outline the flexibility and utility of the workflow for anyone undertaking analysis of animal movement data.</p>
+<div class="cell" data-fig-width="8">
+<div class="cell-output-display">
+<div>
+<p>
+</p><pre class="mermaid mermaid-js" data-tooltip-selector="#mermaid-tooltip-1">%%{init:{'flowchart':{'nodeSpacing': 5, 'rankSpacing': 30}}}%%
+flowchart LR
+subgraph ALL [" "]
+style ALL fill:none,stroke:none
+  S1[Read in data] ==&gt; S3{Merge}
+  S2[Read in metadata] ==&gt; S3 ==&gt; A(Process) ==&gt; B(Filter) ==&gt; C(Save) 
+  A --&gt; A1((Shiny app)) --&gt; B
+  B ---&gt;|"&lt;br/&gt; Summarise/&lt;br/&gt;Visualise"|C
+  B --&gt; B1((Shiny app)) --&gt; C
+  end
+  C --&gt; D
+  C --&gt; C1((Shiny app))
+  C ==&gt; S{Analyses}
+  subgraph OPTIONAL ["OPTIONAL"]
+    style OPTIONAL fill:#fbfbfb, stroke:#999, stroke-width:px, stroke-dasharray:5 5
+    D(Post-process) --&gt; E(Save)
+    C1 --&gt; D
+    D ---&gt;|"&lt;br/&gt; Summarise/&lt;br/&gt;Visualise"|E
+    end
+    E --&gt; S
+    linkStyle 0,1,2,3,4,12 stroke-width:5px %% stroke:#00dca5 (this bit is how you edit colours of lines — no way to change colour of arrow heads)
+%% NOTE: remember to update links for finalised user guide!!
+</pre>
+<div id="mermaid-tooltip-1" class="mermaidTooltip">
+
+</div>
+<p></p>
+<p>Figure 1: Diagram of workflow used for analysing movement data (thick line denotes core path of workflow)</p>
+</div>
+</div>
+</div>
+<section id="key-principles-of-clean-data" class="level4">
+<h4 class="anchored" data-anchor-id="key-principles-of-clean-data">Key principles of clean data</h4>
+<p>By following this workflow the user will achieve the following minimum requirements for clean data:</p>
+<ul>
+<li>Standardise date and time formats across timezones</li>
+<li>Remove rows with corrupted timestamps</li>
+<li>Include relevant metadata</li>
+<li>Remove no data values (e.g.&nbsp;“NA”, “0,0” in lat/longs or other erroneous sensor values)</li>
+<li>Remove duplicates</li>
+<li>Remove undeployed locations (e.g.&nbsp;before tag attachment)</li>
+<li>Standardise spatial projections</li>
+<li>Remove erroneous speeds and locations</li>
+<li>Remove locations at start of tracking period when behaviour is influenced by capture</li>
+</ul>
+</section>
+<section id="import-data-metadata-and-combine" class="level3" data-number="4.1">
+<h3 data-number="4.1" class="anchored" data-anchor-id="import-data-metadata-and-combine"><span class="header-section-number">4.1</span> Import data, metadata, and combine</h3>
+<p>The workflow starts with reading in raw tracking data and metadata files. Raw tracking data refers to data downloaded directly from biologging tags, which fundamentally must contain a time stamp and sensor data (e.g., location, light levels, immersion). We also provide alternative code for data that have already been partially processed, for example data downloaded from an existing repository that contains multiple tags and/or individuals. Metadata provide essential technical, biological and ecological context for the raw data, such as the tag deployment period, sex, age and population. Metadata should contain one row for each tag deployment per individual, with ID numbers corresponding to those in the raw data. The ID numbers are used to match each row of the raw data to the corresponding metadata. Additional code is provided to handle scenarios where a single individual has carried multiple tags in it’s lifetime, or a single tag has been deployed on multiple individuals. Example data are saved as .csv files (see supplementary files), and guidance is provided for importing data in other text-based formats (e.g., such as .txt or .tsv.).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Figure%20Images/Figure_2.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure 2. Example mutating join of raw GPS tracking data file (red) and metadata file (green) using left_join, with “animal_id” as the index column. Note that accuracy of latitude and longtitude data has been reduced for clarity.</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="cleaning" class="level3" data-number="4.2">
+<h3 data-number="4.2" class="anchored" data-anchor-id="cleaning"><span class="header-section-number">4.2</span> Cleaning</h3>
+<p>The cleaning step removes data that are incorrect based on deployment periods and technical tag information. This includes limiting data to the deployment period (i.e., for loggers programmed to start ahead of deployment or not turned off immediately following retrieval), removing duplicate rows, and removing NA’s or known values that correspond to missing data based on tag manufacturer guidance. Some tags record a specific ‘no data’ value when sensor information cannot be derived (e.g., “0,0” for latitude and longitude).</p>
+</section>
+<section id="processing" class="level3" data-number="4.3">
+<h3 data-number="4.3" class="anchored" data-anchor-id="processing"><span class="header-section-number">4.3</span> Processing</h3>
+<p>During the processing step we calculate spatial and temporal metrics to allow downstream analyses and filtering of data based on ecological knowledge. These include metrics pertaining to distance traveled, net displacement, time steps, travel speed and turning angle (relative to previous trajectory) and travel bearing (relative to true north). For central place foragers, we calculate distance and bearing to the central place.</p>
+<p>All spatial data possess a coordinate reference system (CRS) that refers to the 2D projection of the earth’s surface used to represent locations. The most common CRS used for biologging devices is WGS84 (units: latitude and longitude). During the processing step the user must define the CRS of their data. We recommend transforming to a ‘equal area projection’ for spatial calculations (e.g., distance between points), particularly when tracking data spans a large geographic range.</p>
+<p><img src="Figure%20Images/Figure_3_pt1.png" class="img-fluid"></p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Figure%20Images/Figure_3_pt2.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure 3. Processed metrics derived from animal tracking data. Plot A depicts a movement track of a Greenland White-fronted Goose with three different metrics labelled: i) step length, ii) turning angle and iii) travel bearing. The net displacement (plot B) and speed (plot C) over time is shown for the movement track plot A. Plot C depicts a single foraging trip of a Red-footed Booby from a central place (grey filled diamond). Two metrics are labelled here: iv) distance to central place and v) bearing to central place. The distance to colony (plot D) and cumulative distance traveled (plot E) are shown for the track in Plot C.</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="enter-the-shiny-app" class="level3" data-number="4.4">
+<h3 data-number="4.4" class="anchored" data-anchor-id="enter-the-shiny-app"><span class="header-section-number">4.4</span> Enter the Shiny app</h3>
+<p>The Shiny app is designed to determine user-input parameters throughout the workflow by exploring their downstream effects on the resulting dataframes. When processing animal tracking data, prior to analysis, users often select rather arbitrary values by which to filter data, i.e.&nbsp;to eliminate erroneous speeds users often remove points creating speeds above a selected threshold. The app allows users to explore the implications of these arbitrary decisions via interactive manipulation of threshold values and subsequent visualizations that include, data summary tables, histograms of the variable of interest and maps. This app workflow is designed to be iterative. Allowing users to explore threshold choice at multiple points in the workflow, between processing and filter steps and prior to post-processing steps. There are multiple tabs to navigate within the app after users have read in their own data, in each there are a series of interactive user input threshold values (Fig X) and a number of plots and tables detailing the consequences of the user selected values (Fig Y). There are tabs for basic data filters (e.g.&nbsp;speed, post-deployment period and date), calculating foraging trips for central placed foragers, sub-sampling location frequency, segmenting movement tracks and finally visualizing the locations in an interactive leaflet map. To facilitate integration with the main workflow there are code chunks output at the bottom of each shiny tab that contain the selected parameter values, which can be copied into the workflow.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Figure%20Images/Figure%204.jpg" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure 4. Shiny app to explore and visualise tracking data and test the influence of parameter selection on filtering and post-processing. The data filters tab is depicted here and each labelled element is described in more detail here. <em>Data upload</em>; search the users system for a file to upload to the app, this should be the equivalent of df_diagnostic. <em>Toggle tab</em>; toggle between different tabs in the app, for each tab the user input box and outputs will change. <em>Info Boxes</em>; summary information of the tracking data that is calculated automatically for the tracking uploaded by the user. <em>User Values</em>; Values that the user can alter that specify the parameters in filtering or post-processing steps. These maybe be sliders, buttons, dropdown menus or calander date selectors <em>Help</em>; Click to access a pop-up help page that guides users through each tab. <em>Action</em>; press this button to apply the current user value selection to the data. <em>Plot Controls</em>; change whether all or a single individuals is depicted in a map. The specific individual visualised can be chosen using a dropdown menu</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="filter" class="level3" data-number="4.5">
+<h3 data-number="4.5" class="anchored" data-anchor-id="filter"><span class="header-section-number">4.5</span> Filter</h3>
+<p>The filter step allows users to remove erroneous locations based on three derived variables; 1) speed, 2) net displacement and 3) time since tag deployment. Each of these are calculated during the processing step. The threshold values selected by the user to remove data can be explored within the shiny app. Ecological knowledge can help inform the thresholds used, for instance a species’ maximum travel speed or likely displacement from tagging location. We encourage users to explore a range of values in the shiny app and consider the resulting implications for the data retained.</p>
+</section>
+<section id="summarise" class="level3" data-number="4.6">
+<h3 data-number="4.6" class="anchored" data-anchor-id="summarise"><span class="header-section-number">4.6</span> Summarise</h3>
+<p>This step provides a full summary of the data that the user has retained after the filtering step. This is an important opportunity to scrutinize the integrity of the data and determine if further filtering is required. The user selects grouping variables for the data — we suggest initially grouping by individual but broader groupings may be required depending on the type of analysis to be undertaken (e.g., year and population). For each level of the grouping variable the following summary statistics are provided: number of locations, number of unique tracking days, start and end dates of tracking period, and the sampling frequency locations.</p>
+</section>
+<section id="visualisation" class="level3" data-number="4.7">
+<h3 data-number="4.7" class="anchored" data-anchor-id="visualisation"><span class="header-section-number">4.7</span> Visualisation</h3>
+<p>Visualisations are an essential part of exploring and understanding a dataset. As such, we provide code for a series of figures and maps for the user to view the data, validate previous steps and inform future steps. This may elucidate erroneous data that have been overlooked. We also provide code to map the data, providing an initial spatial visualisation of animal movements. Plots of speed and step length offer a further opportunity to screen data for errors. Plots can be visualised with all individuals at once or faceted by individual.It should be noted that there are numerous visualisations in the shiny app that serve much the same purpose, including an interactive map to aid data visualisation and parameter determination.</p>
+</section>
+<section id="post-processing-optional" class="level3" data-number="4.8">
+<h3 data-number="4.8" class="anchored" data-anchor-id="post-processing-optional"><span class="header-section-number">4.8</span> Post-processing (optional)</h3>
+<p>Some types of animal movement analyses require additional processing to prepare data, such as defining segments (e.g., separating tracks into bursts of continuous data to avoid over-interpolation across large gaps), sub-sampling (e.g., to downsample tracking data to facilitate comparisons among datasets with different sampling regimes), and identifying distinct trips made by central place foragers. Additional scripts are provided to perform these analyses, designed to follow on from the main code workflow. Scripts can be run iteratively if additional post-processing steps are required. Each script contains tools to summarise, visualise, and save the post-processed data. The shiny app can also be used here to aid parameter determination.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Figure%20Images/Figure_5.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure 5. Example of sub-sampling GPS tracking data using an optional processing step. The data used are from two Greenland White-fronted Geese migrating from the United Kingdom to Iceland. Panel a depicts a histogram of sampling intervals present in the data, clearly there is a mixture of data collected at one and two hour resolution. Therefore to make sampling intervals consistent the data were sub-sampled to 2 hours (dashed vertical line). In panel b the output of this sub-sampling are visualized and retained (red) and removed (grey) GPS fixes are shown. The individual starting from a more southerly location was originally collected at a 1 hour resolution hence roughly every other fix is removed.</figcaption><p></p>
+</figure>
+</div>
+</section>
+<section id="standardising-output-for-tracking-databases" class="level3" data-number="4.9">
+<h3 data-number="4.9" class="anchored" data-anchor-id="standardising-output-for-tracking-databases"><span class="header-section-number">4.9</span> Standardising output for tracking databases</h3>
+<p>Many users may need to archive their data on an online database, which often require data to be in a specific format before files can be uploaded <span class="citation" data-cites="kays2021">(<a href="#ref-kays2021" role="doc-biblioref">Kays et al. 2021</a>)</span>. As such, we provide code for users to format and save their data, processed within the workflow, in the required format of two common tracking databases; (1) movebank, and (2) the seabird tracking database.</p>
+</section>
+</section>
+<section id="tools-and-additional-practical-resources" class="level2" data-number="5">
+<h2 data-number="5" class="anchored" data-anchor-id="tools-and-additional-practical-resources"><span class="header-section-number">5</span> Tools and additional practical resources</h2>
+<section id="preparing-your-machine" class="level3" data-number="5.1">
+<h3 data-number="5.1" class="anchored" data-anchor-id="preparing-your-machine"><span class="header-section-number">5.1</span> Preparing your machine</h3>
+<p>In order to make use of the included materials, users need to have downloaded R and the RStudio IDE <span class="citation" data-cites="ihaka1996">(<a href="#ref-ihaka1996" role="doc-biblioref">Ihaka and Gentleman 1996</a>)</span>. Our code is compatible with R versions 4.0.3 - 4.2.1. In general it is recommended that users are not more that two sub-versions behind the most recent release of R.</p>
+</section>
+<section id="updating-packages" class="level3" data-number="5.2">
+<h3 data-number="5.2" class="anchored" data-anchor-id="updating-packages"><span class="header-section-number">5.2</span> Updating packages</h3>
+<p>We make use of the most recent releases of core packages in the tidyverse <span class="citation" data-cites="wickham2019a">(<a href="#ref-wickham2019a" role="doc-biblioref">Wickham et al. 2019c</a>)</span>, which is composed of <code>ggplot2</code> (v3.4.0), <code>dplyr</code> (v1.0.10), <code>tidyr</code> (v1.2.1), <code>readr</code> (v2.1.2), <code>purrr</code> (v1.0.1), <code>tibble</code> (v3.1.8), <code>stringr</code> (v1.5.0) and <code>forcats</code> (v0.5.1), as well as <code>lubridate</code> (v1.8.0), which is not a core package but still in tidyverse <span class="citation" data-cites="ggplot2 dplyr tidyr readr purrr tibble stringr forcats lubridate">(<a href="#ref-ggplot2" role="doc-biblioref">Wickham 2016</a>, <a href="#ref-stringr" role="doc-biblioref">2022</a>, <a href="#ref-forcats" role="doc-biblioref">2021</a>; <a href="#ref-dplyr" role="doc-biblioref">Wickham et al. 2022</a>; <a href="#ref-tidyr" role="doc-biblioref">Wickham and Girlich 2022</a>; <a href="#ref-readr" role="doc-biblioref">Wickham, Hester, and Bryan 2022</a>; <a href="#ref-purrr" role="doc-biblioref">Wickham and Henry 2023</a>; <a href="#ref-tibble" role="doc-biblioref">Müller and Wickham 2022</a>; <a href="#ref-lubridate" role="doc-biblioref">Grolemund and Wickham 2011</a>)</span>. We also use <code>sf</code> (v1.0-9) for spatial analyses, and the <code>here</code> package (v1.0.1) for making reproducible filepaths <span class="citation" data-cites="sf here-2">(<a href="#ref-sf" role="doc-biblioref">Pebesma 2018b</a>; <a href="#ref-here-2" role="doc-biblioref">Müller 2020c</a>)</span>.</p>
+</section>
+<section id="using-github" class="level3" data-number="5.3">
+<h3 data-number="5.3" class="anchored" data-anchor-id="using-github"><span class="header-section-number">5.3</span> Using GitHub</h3>
+<p>ExMove GitHub repository can be utlised in a variety of ways, accessible to all levels of experience and desired user outcomes. Users can either: i) ‘clone’ an updatable version of the ExMove repository via <code>git</code>, ii) download a static copy of the entire repository by navigating to <code>&lt;&gt; Code</code> &gt; <code>Download ZIP</code>, or iii) view and download individual scripts as required. To maximise reproducibility and future functionality, our recommended approach would be to set up R/RStudio with <code>git</code> version control, set up and connect a personal GitHub account, then clone the ExMove repository. Additional information and links for on getting set up with GitHub and RStudio can be found in the ExMove repository readme ([insert link here]).</p>
+</section>
+<section id="user-guide" class="level3" data-number="5.4">
+<h3 data-number="5.4" class="anchored" data-anchor-id="user-guide"><span class="header-section-number">5.4</span> User guide</h3>
+<p>We also provide a browser-based user guide that follows each step of the workflow, with worked examples in baseR and tidy code. This guide also contains example outputs of dataframes and plots produced for each step ([insert link here])</p>
+</section>
+<section id="shiny-app" class="level3" data-number="5.5">
+<h3 data-number="5.5" class="anchored" data-anchor-id="shiny-app"><span class="header-section-number">5.5</span> Shiny app</h3>
+<p>The shiny app is available online at the following link:[insert link here]. There is an upload limit so users can either explore the app with examples data sets we provide or a subset of their own data. If the user wants to run the app on their full data set then we recommend that they fork the repository and then run the app locally on their own machine.</p>
+</section>
+<section id="faqs" class="level3" data-number="5.6">
+<h3 data-number="5.6" class="anchored" data-anchor-id="faqs"><span class="header-section-number">5.6</span> FAQ’s</h3>
+<p>Some important principles of movement and spatial analyses can be a common source of confusion (for example: understanding data projections). Given ExMove’s primarly goal as a learning tool, we provide information to help facilitate better understanding of these core concepts, and links to useful materials made available by others (FAQ page can be found here: [insert link here]).</p>
+</section>
+</section>
+<section id="try-it-yourself" class="level2" data-number="6">
+<h2 data-number="6" class="anchored" data-anchor-id="try-it-yourself"><span class="header-section-number">6</span> Try it yourself</h2>
+<p>Within the GitHub repo we provide three road-tested example datasets for users to familiarise themselves with running the pipeline. These datasets are from African penguins (<em>Spheniscus demersus</em>) breeding in South Africa, Red-footed boobies (<em>Sula leucogaster</em>) breeding in the Chagos Archipelago, and Greenland white-fronted goose (<em>Anser albifrons flavirostris</em>) migrating from Ireland and Scotland to Greenland (see Figure 6).</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Figure%20Images/Figure_6_annotated.png" class="img-fluid figure-img"></p>
+<p></p><figcaption class="figure-caption">Figure 6. Visualisation of the three example datasets provided as part of the pipeline. A: Red-footed boobies. B: Greenland-white fronted geese. C: African penguin.</figcaption><p></p>
+</figure>
+</div>
+<section id="red-footed-boobies-datset" class="level3" data-number="6.1">
+<h3 data-number="6.1" class="anchored" data-anchor-id="red-footed-boobies-datset"><span class="header-section-number">6.1</span> Red-footed boobies datset</h3>
+<p>GPS data from three red-footed boobies tracked during 2016 and 2016 (Figure 6A). Data represent central-place foraging trips of breeding adults from two colonies, Diego Garcia and Nelsons Island in the Chagos Archipelago, central Indian Ocean. Tagging methodology and ethical considerations can be found in Trevail <em>et al.</em> (In review, MEPS).</p>
+</section>
+<section id="greenland-white-fronted-geese" class="level3" data-number="6.2">
+<h3 data-number="6.2" class="anchored" data-anchor-id="greenland-white-fronted-geese"><span class="header-section-number">6.2</span> Greenland white-fronted geese</h3>
+<p>GPS data from four Greenland White-fronted Geese tracked during spring 2019/18 (Figure 6B). These data cover the entire spring migration from Ireland and Scotland to Greenland with a stopover in southern Iceland. Two individuals originate from Islay, Scotland and two from Wexford, Ireland. Tagging methodology and ethical considerations can be found in Ozsanlav-Harris <em>et al.</em> <span class="citation" data-cites="ozsanlav-harris2022">(<a href="#ref-ozsanlav-harris2022" role="doc-biblioref">2022</a>)</span>.</p>
+</section>
+<section id="african-penguins" class="level3" data-number="6.3">
+<h3 data-number="6.3" class="anchored" data-anchor-id="african-penguins"><span class="header-section-number">6.3</span> African penguins</h3>
+<p>GPS data from three African penguins tracked between 2011-2013 (Figure 6C). These data cover foraging trips by breeding adults during chick-rearing. All individuals were tagged on Robben Island, off the coast of South Africa. Additional information regarding tagging and ethical considerations can be found in Campbell <em>et al.</em> <span class="citation" data-cites="campbell2019">(<a href="#ref-campbell2019" role="doc-biblioref">2019</a>)</span>.</p>
+</section>
+</section>
+<section id="acknowledgments" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="acknowledgments"><span class="header-section-number">7</span> Acknowledgments</h2>
+<p>We thank Richard Sherley for providing a sample of tracking data from African penguins, and the Widlfowl and Wetlands Trust for providing tracking data from Greenland White-fronted Geese. Alice Trevail was funded by the Bertarelli Programme in Marine Science, who also funded collection of red-footed booby data. We also thank Evelyn Alexander, Jacqueline Glencross and Tess Handby for providing valuable feedback on the code, workflow and Shiny app.</p>
+</section>
+<section id="author-contributions" class="level2" data-number="8">
+<h2 data-number="8" class="anchored" data-anchor-id="author-contributions"><span class="header-section-number">8</span> Author contributions</h2>
+<p>All authors contributed equally to the manuscript.</p>
+
+</section>
+
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" role="doc-bibliography">
+<div id="ref-baker2016" class="csl-entry" role="doc-biblioentry">
+Baker, Monya. 2016. <span>“1,500 Scientists Lift the Lid on Reproducibility.”</span> <em>Nature</em> 533 (7604): 452–54. <a href="https://doi.org/10.1038/533452a">https://doi.org/10.1038/533452a</a>.
+</div>
+<div id="ref-barnes2010a" class="csl-entry" role="doc-biblioentry">
+Barnes, Nick. 2010. <span>“Publish Your Computer Code: It Is Good Enough.”</span> <em>Nature</em> 467 (7317): 753–53. <a href="https://doi.org/10.1038/467753a">https://doi.org/10.1038/467753a</a>.
+</div>
+<div id="ref-bodey2017" class="csl-entry" role="doc-biblioentry">
+Bodey, Thomas W., Ian R. Cleasby, Fraser Bell, Nicole Parr, Anthony Schultz, Stephen C. Votier, and Stuart Bearhop. 2017. <span>“A Phylogenetically Controlled Meta<span>-</span>Analysis of Biologging Device Effects on Birds: Deleterious Effects and a Call for More Standardized Reporting of Study Data.”</span> Edited by Emmanuel Paradis. <em>Methods in Ecology and Evolution</em> 9 (4): 946–55. <a href="https://doi.org/10.1111/2041-210x.12934">https://doi.org/10.1111/2041-210x.12934</a>.
+</div>
+<div id="ref-brunsdon2020" class="csl-entry" role="doc-biblioentry">
+Brunsdon, Chris, and Alexis Comber. 2020. <span>“Opening Practice: Supporting Reproducibility and Critical Spatial Data Science.”</span> <em>Journal of Geographical Systems</em> 23 (4): 477–96. <a href="https://doi.org/10.1007/s10109-020-00334-2">https://doi.org/10.1007/s10109-020-00334-2</a>.
+</div>
+<div id="ref-campbell2019" class="csl-entry" role="doc-biblioentry">
+Campbell, Kate J., Antje Steinfurth, Les G. Underhill, Janet C. Coetzee, Bruce M. Dyer, Katrin Ludynia, Azwianewi B. Makhado, et al. 2019. <span>“Local Forage Fish Abundance Influences Foraging Effort and Offspring Condition in an Endangered Marine Predator.”</span> Edited by Silvia Carvalho. <em>Journal of Applied Ecology</em> 56 (7): 1751–60. <a href="https://doi.org/10.1111/1365-2664.13409">https://doi.org/10.1111/1365-2664.13409</a>.
+</div>
+<div id="ref-culina2020" class="csl-entry" role="doc-biblioentry">
+Culina, Antica, Ilona van den Berg, Simon Evans, and Alfredo Sánchez-Tójar. 2020. <span>“Low Availability of Code in Ecology: A&nbsp;Call for Urgent Action.”</span> <em>PLOS Biology</em> 18 (7): e3000763. <a href="https://doi.org/10.1371/journal.pbio.3000763">https://doi.org/10.1371/journal.pbio.3000763</a>.
+</div>
+<div id="ref-figueiredo2022" class="csl-entry" role="doc-biblioentry">
+Figueiredo, Ludmilla, Cédric Scherer, and Juliano Sarmento Cabral. 2022. <span>“A Simple Kit to Use Computational Notebooks for More Openness, Reproducibility, and Productivity in Research.”</span> Edited by Francis Ouellette. <em>PLOS Computational Biology</em> 18 (9): e1010356. <a href="https://doi.org/10.1371/journal.pcbi.1010356">https://doi.org/10.1371/journal.pcbi.1010356</a>.
+</div>
+<div id="ref-lubridate" class="csl-entry" role="doc-biblioentry">
+Grolemund, Garrett, and Hadley Wickham. 2011. <span>“Dates and Times Made Easy with <span></span>Lubridate<span></span>”</span> 40. <a href="https://www.jstatsoft.org/v40/i03/">https://www.jstatsoft.org/v40/i03/</a>.
+</div>
+<div id="ref-gupte2021a" class="csl-entry" role="doc-biblioentry">
+Gupte, Pratik Rajan, Christine E. Beardsworth, Orr Spiegel, Emmanuel Lourie, Sivan Toledo, Ran Nathan, and Allert I. Bijleveld. 2021. <span>“A Guide to Pre<span>-</span>Processing High<span>-</span>Throughput Animal Tracking Data.”</span> <em>Journal of Animal Ecology</em> 91 (2): 287–307. <a href="https://doi.org/10.1111/1365-2656.13610">https://doi.org/10.1111/1365-2656.13610</a>.
+</div>
+<div id="ref-ihaka1996" class="csl-entry" role="doc-biblioentry">
+Ihaka, Ross, and Robert Gentleman. 1996. <span>“R: A Language for Data Analysis and Graphics.”</span> <em>Journal of Computational and Graphical Statistics</em> 5 (3): 299–314. <a href="https://doi.org/10.1080/10618600.1996.10474713">https://doi.org/10.1080/10618600.1996.10474713</a>.
+</div>
+<div id="ref-joo2019a" class="csl-entry" role="doc-biblioentry">
+Joo, Rocío, Matthew E. Boone, Thomas A. Clay, Samantha C. Patrick, Susana Clusella-Trullas, and Mathieu Basille. 2019. <span>“Navigating Through Therpackages for Movement.”</span> Edited by Luca Börger. <em>Journal of Animal Ecology</em> 89 (1): 248–67. <a href="https://doi.org/10.1111/1365-2656.13116">https://doi.org/10.1111/1365-2656.13116</a>.
+</div>
+<div id="ref-kays2015" class="csl-entry" role="doc-biblioentry">
+Kays, Roland, Margaret C. Crofoot, Walter Jetz, and Martin Wikelski. 2015. <span>“Terrestrial Animal Tracking as an Eye on Life and Planet.”</span> <em>Science</em> 348 (6240). <a href="https://doi.org/10.1126/science.aaa2478">https://doi.org/10.1126/science.aaa2478</a>.
+</div>
+<div id="ref-kays2021" class="csl-entry" role="doc-biblioentry">
+Kays, Roland, Sarah C. Davidson, Matthias Berger, Gil Bohrer, Wolfgang Fiedler, Andrea Flack, Julian Hirt, et al. 2021. <span>“The Movebank System for Studying Global Animal Movement and Demography.”</span> <em>Methods in Ecology and Evolution</em> 13 (2): 419–31. <a href="https://doi.org/10.1111/2041-210x.13767">https://doi.org/10.1111/2041-210x.13767</a>.
+</div>
+<div id="ref-kölzsch2022a" class="csl-entry" role="doc-biblioentry">
+Kölzsch, Andrea, Sarah C. Davidson, Dominik Gauggel, Clemens Hahn, Julian Hirt, Roland Kays, Ilona Lang, et al. 2022. <span>“MoveApps: A Serverless No-Code Analysis Platform for Animal Tracking Data.”</span> <em>Movement Ecology</em> 10 (1). <a href="https://doi.org/10.1186/s40462-022-00327-4">https://doi.org/10.1186/s40462-022-00327-4</a>.
+</div>
+<div id="ref-mckiernan2016" class="csl-entry" role="doc-biblioentry">
+McKiernan, Erin C, Philip E Bourne, C Titus Brown, Stuart Buck, Amye Kenall, Jennifer Lin, Damon McDougall, et al. 2016. <span>“How Open Science Helps Researchers Succeed.”</span> <em>eLife</em> 5 (July). <a href="https://doi.org/10.7554/elife.16800">https://doi.org/10.7554/elife.16800</a>.
+</div>
+<div id="ref-here" class="csl-entry" role="doc-biblioentry">
+Müller, Kirill. 2020b. <span>“Here: A Simpler Way to Find Your Files.”</span> <a href="https://CRAN.R-project.org/package=here">https://CRAN.R-project.org/package=here</a>.
+</div>
+<div id="ref-here-2" class="csl-entry" role="doc-biblioentry">
+———. 2020c. <span>“Here: A Simpler Way to Find Your Files.”</span> <a href="https://CRAN.R-project.org/package=here">https://CRAN.R-project.org/package=here</a>.
+</div>
+<div id="ref-here-3" class="csl-entry" role="doc-biblioentry">
+———. 2020a. <span>“Here: A Simpler Way to Find Your Files.”</span> <a href="https://CRAN.R-project.org/package=here">https://CRAN.R-project.org/package=here</a>.
+</div>
+<div id="ref-tibble" class="csl-entry" role="doc-biblioentry">
+Müller, Kirill, and Hadley Wickham. 2022. <span>“Tibble: Simple Data Frames.”</span> <a href="https://CRAN.R-project.org/package=tibble">https://CRAN.R-project.org/package=tibble</a>.
+</div>
+<div id="ref-ozsanlav-harris2022" class="csl-entry" role="doc-biblioentry">
+Ozsanlav-Harris, Luke, Larry R. Griffin, Mitch D. Weegman, Lei Cao, Geoff M. Hilton, and Stuart Bearhop. 2022. <span>“Wearable Reproductive Trackers: Quantifying a Key Life History Event Remotely.”</span> <em>Animal Biotelemetry</em> 10 (1). <a href="https://doi.org/10.1186/s40317-022-00298-8">https://doi.org/10.1186/s40317-022-00298-8</a>.
+</div>
+<div id="ref-sf" class="csl-entry" role="doc-biblioentry">
+Pebesma, Edzer. 2018b. <span>“<span></span>Simple Features for r: Standardized Support for Spatial Vector Data<span></span>”</span> 10. <a href="https://doi.org/10.32614/RJ-2018-009">https://doi.org/10.32614/RJ-2018-009</a>.
+</div>
+<div id="ref-sf-2" class="csl-entry" role="doc-biblioentry">
+———. 2018a. <span>“<span></span>Simple Features for r: Standardized Support for Spatial Vector Data<span></span>”</span> 10. <a href="https://doi.org/10.32614/RJ-2018-009">https://doi.org/10.32614/RJ-2018-009</a>.
+</div>
+<div id="ref-potts2022" class="csl-entry" role="doc-biblioentry">
+Potts, Jonathan R., and Luca Börger. 2022. <span>“How to Scale up from Animal Movement Decisions to Spatiotemporal Patterns: An Approach via Step Selection.”</span> <em>Journal of Animal Ecology</em>, November. <a href="https://doi.org/10.1111/1365-2656.13832">https://doi.org/10.1111/1365-2656.13832</a>.
+</div>
+<div id="ref-trisovic2022" class="csl-entry" role="doc-biblioentry">
+Trisovic, Ana, Matthew K. Lau, Thomas Pasquier, and Mercè Crosas. 2022. <span>“A Large-Scale Study on Research Code Quality and Execution.”</span> <em>Scientific Data</em> 9 (1). <a href="https://doi.org/10.1038/s41597-022-01143-6">https://doi.org/10.1038/s41597-022-01143-6</a>.
+</div>
+<div id="ref-wickham2014" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley. 2014. <span>“Tidy Data.”</span> <em>Journal of Statistical Software</em> 59 (10). <a href="https://doi.org/10.18637/jss.v059.i10">https://doi.org/10.18637/jss.v059.i10</a>.
+</div>
+<div id="ref-ggplot2" class="csl-entry" role="doc-biblioentry">
+———. 2016. <span>“Ggplot2: Elegant Graphics for Data Analysis.”</span> <a href="https://ggplot2.tidyverse.org">https://ggplot2.tidyverse.org</a>.
+</div>
+<div id="ref-forcats" class="csl-entry" role="doc-biblioentry">
+———. 2021. <span>“Forcats: Tools for Working with Categorical Variables (Factors).”</span> <a href="https://CRAN.R-project.org/package=forcats">https://CRAN.R-project.org/package=forcats</a>.
+</div>
+<div id="ref-stringr" class="csl-entry" role="doc-biblioentry">
+———. 2022. <span>“Stringr: Simple, Consistent Wrappers for Common String Operations.”</span> <a href="https://CRAN.R-project.org/package=stringr">https://CRAN.R-project.org/package=stringr</a>.
+</div>
+<div id="ref-tidyverse" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy D’Agostino McGowan, Romain François, Garrett Grolemund, et al. 2019a. <span>“Welcome to the <span></span>Tidyverse<span></span>”</span> 4: 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.
+</div>
+<div id="ref-wickham2019" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, Mara Averick, Jennifer Bryan, Winston Chang, Lucy McGowan, Romain François, Garrett Grolemund, et al. 2019b. <span>“Welcome to the Tidyverse.”</span> <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.
+</div>
+<div id="ref-wickham2019a" class="csl-entry" role="doc-biblioentry">
+———, et al. 2019c. <span>“Welcome to the Tidyverse.”</span> <em>Journal of Open Source Software</em> 4 (43): 1686. <a href="https://doi.org/10.21105/joss.01686">https://doi.org/10.21105/joss.01686</a>.
+</div>
+<div id="ref-dplyr" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, Romain François, Lionel Henry, and Kirill Müller. 2022. <span>“Dplyr: A Grammar of Data Manipulation.”</span> <a href="https://CRAN.R-project.org/package=dplyr">https://CRAN.R-project.org/package=dplyr</a>.
+</div>
+<div id="ref-tidyr" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, and Maximilian Girlich. 2022. <span>“Tidyr: Tidy Messy Data.”</span> <a href="https://CRAN.R-project.org/package=tidyr">https://CRAN.R-project.org/package=tidyr</a>.
+</div>
+<div id="ref-purrr" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, and Lionel Henry. 2023. <span>“Purrr: Functional Programming Tools.”</span> <a href="https://CRAN.R-project.org/package=purrr">https://CRAN.R-project.org/package=purrr</a>.
+</div>
+<div id="ref-readr" class="csl-entry" role="doc-biblioentry">
+Wickham, Hadley, Jim Hester, and Jennifer Bryan. 2022. <span>“Readr: Read Rectangular Text Data.”</span> <a href="https://CRAN.R-project.org/package=readr">https://CRAN.R-project.org/package=readr</a>.
+</div>
+<div id="ref-wilmers2015" class="csl-entry" role="doc-biblioentry">
+Wilmers, Christopher C., Barry Nickel, Caleb M. Bryce, Justine A. Smith, Rachel E. Wheat, and Veronica Yovovich. 2015. <span>“The Golden Age of Bio-Logging: How Animal-Borne Sensors Are Advancing the Frontiers of Ecology.”</span> <em>Ecology</em> 96 (7): 1741–53. <a href="https://doi.org/10.1890/14-1401.1">https://doi.org/10.1890/14-1401.1</a>.
+</div>
+</div></section></div></main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+    var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var filterRegex = new RegExp('/' + window.location.host + '/');
+    var isInternal = (href) => {
+        return filterRegex.test(href) || localhostRegex.test(href);
+    }
+    // Inspect non-navigation links and adorn them if external
+    var links = window.document.querySelectorAll('a:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item)');
+    for (var i=0; i<links.length; i++) {
+      const link = links[i];
+      if (!isInternal(link.href)) {
+          // target, if specified
+          link.setAttribute("target", "_blank");
+      }
+    }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

@@ -1,0 +1,166 @@
+---
+title: "MS_figures"
+format: html
+---
+
+```{r}
+#| echo: false
+#prepping packages for all figures
+pacman::p_load(tidyverse, flextable, gridExtra, ggpubr, cowplot, patchwork)
+```
+
+
+## Figure 1
+
+```{mermaid}
+%%| fig-label: fig-1
+%%| fig-width: 9
+%%| fig-cap: "Figure 1: Diagram of workflow used for analysing movement data (thick line denotes core path of workflow)"
+%%{init:{'flowchart':{'nodeSpacing': 5, 'rankSpacing': 30}}}%%
+flowchart LR
+subgraph ALL [" "]
+style ALL fill:none,stroke:none
+  S1[Read in data] ==> S3{Merge}
+  S2[Read in metadata] ==> S3 ==> A(Process) ==> B(Filter) ==> C(Save) 
+  A --> A1((Shiny app)) --> B
+  B --->|"<br/> Summarise/<br/>Visualise"|C
+  B --> B1((Shiny app)) --> C
+  end
+  C --> D
+  C --> C1((Shiny app))
+  C ==> S{Analyses}
+  subgraph OPTIONAL ["OPTIONAL"]
+    style OPTIONAL fill:#fbfbfb, stroke:#999, stroke-width:px, stroke-dasharray:5 5
+    D(Post-process) --> E(Save)
+    C1 --> D
+    D --->|"<br/> Summarise/<br/>Visualise"|E
+    end
+    E --> S
+    linkStyle 0,1,2,3,4,12 stroke-width:5px %% stroke:#00dca5 (this bit is how you edit colours of lines — no way to change colour of arrow heads)
+%% NOTE: remember to update links for finalised user guide!!
+```
+
+## Figure 2
+Could add extra different to show how metadata is always shorter
+```{r}
+#| echo: false
+#| message: false
+#| warning: false
+#| out-width: 100%
+
+#prepping packages for all figures
+pacman::p_load(tidyverse, flextable, gridExtra, ggpubr, cowplot, patchwork, ggpattern, here, magick)
+
+data <- tibble(animal_id = c("animal_2", "animal_3", "animal_1"),
+               datetime = c("2022/02/02 02:02:02", "2023/03/03 03:03:03", "2021/01/01 01:01:01"),
+               lat = c("55.2", "55.3","55.1"), 
+               lon = c("-3.2", "-3.3", "-3.1"))
+
+metadata <- tibble(animal_id = c("animal_3", "animal_1", "animal_2"),
+                   start = c( "2023/03/03 03:03:03", "2021/01/01 01:01:01", "2022/02/02 02:02:02"),
+                   end = c("2023/03/03 03:03:03", "2021/01/01 01:01:01", "2022/02/02 02:02:02"),
+                   population = c("Berkshire","Cheshire","Cornwall"))
+
+#flextable
+theme_design <- function(x) {
+  x <- border_remove(x)
+  std_border <- fp_border_default(width = 3, color = "grey98")
+  fat_border <- fp_border_default(width = 6, color = "grey98")
+  x <- fontsize(x, size = 8.5, part = "all")
+  #x <- font(x, fontname = "Courier", part = "all")
+  x <- align(x, align = "center", part = "all")
+  x <- bold(x, bold = TRUE, part = "header")
+  x <- color(x, color = "grey10", part = "all")
+  x <- padding(x, padding = 7, part = "all")
+  x <- border_outer(x, border = fat_border, part = "all")
+  x <- border_inner_h(x, border = std_border, part = "all")
+  x <- border_inner_v(x, border = std_border, part = "all")
+  x <- set_table_properties(x, layout = "fixed")
+  x
+}
+data_table <- flextable(data) %>% 
+  autofit() %>%
+  theme_design() %>%
+  bg(j = c("animal_id"), bg = "grey80", part = "all") %>%
+  bg(j = c("datetime","lat","lon"), bg = "#fee0d2", part = "body") %>%
+  bg(j = c("datetime","lat","lon"), bg = "#fc9272", part = "header") %>%
+  #bold(j = "animal_id", bold = TRUE, part = "body") %>% #use this to bold a named column
+  gen_grob(., scaling = "fixed", fit = "width", wrapping = FALSE, autowidths = TRUE)
+
+meta_table <- flextable(metadata) %>% 
+  autofit() %>% 
+  theme_design() %>%
+  bg(j = c("animal_id"), bg = "grey80", part = "all") %>%
+  bg(j = c("start","end","population"), bg = "#e5f5e0", part = "body") %>%
+  bg(j = c("start","end","population"), bg = "#a1d99b", part = "header") %>%
+  gen_grob(., scaling = "fixed", fit = "width", wrapping = FALSE, autowidths = TRUE)
+
+arrow <- ggplot() +
+  geom_curve(aes(x = 1, y = 2, xend = 2, yend = 0.8), 
+             colour = "grey", curvature = -.25, linewidth = 5, lineend = "round") + #leftline
+  geom_curve(aes(x = 3, y = 2, xend = 2, yend = 0.8), 
+             colour = "grey", curvature = .25, linewidth = 5, lineend = "round") + #rightline
+  geom_polygon(data = tibble(x = c(2, 1.7, 2.3), y = c(0.6, 1, 1)), aes(x = x, y = y), fill ="grey") + #arrow
+  geom_rect_pattern(aes(xmin=0, ymin=1, xmax=4, ymax=2.05), #box
+                    pattern_fill  = "#ffffff00",
+                    pattern_fill2 = "white",
+                    pattern_orientation = "vertical",
+                    pattern = 'gradient',
+                    fill = NA) +
+  theme_void() + coord_cartesian(expand = FALSE)
+
+combi_table <- flextable(left_join(data, metadata) %>% slice(3,1,2)) %>%
+  autofit() %>%
+  theme_design() %>%
+  bg(j = c("animal_id"), bg = "grey80", part = "all") %>%
+  bg(j = c("datetime","lat","lon"), bg = "#fee0d2", part = "body") %>%
+  bg(j = c("datetime","lat","lon"), bg = "#fc9272", part = "header") %>%
+  bg(j = c("start","end","population"), bg = "#e5f5e0", part = "body") %>%
+  bg(j = c("start","end","population"), bg = "#a1d99b", part = "header") %>%
+  gen_grob(., scaling = "fixed", fit = "width", wrapping = FALSE)
+
+layout <- c(
+  area(t = 3, l = 5, b = 5, r = 9), #arrow
+  area(t = 1, l = 1, b = 4, r = 6), #data
+  area(t = 1, l = 8, b = 4, r = 15), #meta
+  area(t = 6, l = 1, b = 9, r = 15) #combi
+)
+
+final <-   arrow + wrap_elements(data_table) + wrap_elements(meta_table) +
+  wrap_elements(combi_table) +
+    plot_layout(design = layout)
+plot(layout) #test plot layout
+
+ggsave(plot = final, filename = "Figure_2.png",
+       #device = device,
+       path = here("Manuscript","Figure Images"),
+       units = "mm", width = 200, height = 80, dpi = 300,   
+)
+```
+
+
+```{r}
+pacman::p_load(tidyverse, ggpattern)
+#original arrow plot code
+merge <- ggplot() +
+  geom_curve(aes(x = 1, y = 2, xend = 2, yend = 0.8), 
+             colour = "grey", curvature = -.25, linewidth = 5, lineend = "round") + #leftline
+  geom_curve(aes(x = 3, y = 2, xend = 2, yend = 0.8), 
+             colour = "grey", curvature = .25, linewidth = 5, lineend = "round") + #rightline
+  geom_polygon(data = tibble(x = c(2, 1.7, 2.3), y = c(0.6, 1, 1)), aes(x = x, y = y), fill ="grey") + #arrow
+  geom_rect_pattern(aes(xmin=0, ymin=1, xmax=4, ymax=2.05), #box
+                    pattern_fill  = "#ffffff00",
+                    pattern_fill2 = "white",
+                    pattern_orientation = "vertical",
+                    pattern = 'gradient',
+                    fill = NA) +
+  theme_void() + coord_cartesian(expand = FALSE)
+
+merge
+
+#ggsave(plot = merge, filename = "Figure_2.tiff",
+#       #device = device,
+#       path = here("Manuscript","Figure Images"),
+#       units = "mm", width = 200, height = 125, dpi = 300,   
+#)
+```

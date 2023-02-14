@@ -906,7 +906,7 @@ ggsave(plot = step_hist,
 ## At this point we may be ready to start analysing our processed movement data
 ## However in some (many) instances additional processing may be necessary
 ## Some common additional processing steps that may be required are as follows:
-## 1. Reprocessing - Sub-sampling or interpolating movement data to a standardised time interval
+## 1. Reprocessing - Sub-sampling movement data to a lower temporal resolution
 ## 2. Dividing irregularly sampled movement tracks into defined segments
 ## 3. Defining foraging trips and calculating trip metrics (for central place foragers)
 ## We provide example code for performing these optional processing steps in separate R scripts

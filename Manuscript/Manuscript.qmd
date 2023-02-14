@@ -1,0 +1,198 @@
+---
+title: "ExMove: An open-source toolkit for processing and exploring bio-logging data in R"
+#subtitle: "optional subtitle here if needed"
+format: html
+authors:
+  - name: Alice Trevail
+    orcid: 0000-0002-6459-5213
+  - name: Stephen Lang
+    orcid: 0000-0001-5820-4346
+  - name: Luke Ozsanlav-Harris
+    orcid: 0000-0003-3889-6722
+  - name: Liam Langley
+    orcid: 0000-0001-9754-6517
+link-external-newwindow: true #open links in new window
+toc: true
+number-sections: true
+number-depth: 3
+bibliography: MS_references.bib
+---
+
+***Keywords:*** Animal movement, Tracking data, Reproducibility, Code sharing, User guide, Cheat sheet, GPS, geolocator, ARGOS
+
+Word count: `r as.integer(sub("(\\d+).+$", "\\1", system(sprintf("wc -w %s", knitr::current_input()), intern = TRUE))) - 20`
+
+## Abstract
+
+Ongoing technological advances have led to a rapid increase in the number and scope of bio-logging studies. In response, many software tools have been developed to analyze animal movement data. These tools generally focus on movement modelling, but the steps required to clean data from raw bio-logging files have been largely ignored. Such pre-processing steps are often time-consuming and involve a steep learning curve. Moreover, decisions made at this early stage can substantially influence subsequent analyses. Here we present an open-access, reproducible toolkit written in the programming language R for processing raw data files into a single cleaned data set. The toolkit is generalizable to different data formats, uses modern 'tidy coding' practices, and has minimal dependencies. We provide a set of key principles and transparent, flexible code to flatten the learning curve associated with bio-logging data processing, and produce robust, reproducible datasets. Overall, we envision our toolkit as a time-saving approach that provides a common starting point for anyone conducting animal movement analyses.
+
+## Introduction
+
+We live in a golden age of animal-tracking data. Recent technological advancements have reduced the size and cost of bio-logging devices, with more species and individuals tracked over longer periods, allowing researchers to expand the frontiers of ecological research [@wilmers2015; @kays2015; @bodey2017]. These studies have generated a rapidly-expanding volume of data [@gupte2021a], and a range of software tools have been developed to facilitate animal movement research [@joo2019a]. However, these tools largely focus on conducting movement analyses of complex data, and the upstream filtering and processing steps required to generate an appropriate cleaned data set have been given scant attention [however see @gupte2021a]. Such pre-analysis steps are universal when working with bio-logging data, and often involve the determination of key parameters which can strongly influence the conclusions drawn from subsequent analysis. Moreover, these steps are time consuming, often involving a steep learning curve, and large amounts of time and associated grant funding are lost as unacquainted researchers re-run these steps and in many cases attempt to re-invent what should be a standardized and reproducible process.
+
+Some research groups have made important progress in developing tools for pre-processing. Gupte *et al*. [-@gupte2021a] provide an informative framework outlining the key pre-processing steps involved in processing high-throughput bio-logging data, alongside a pipeline and R package to implement these steps. However, the `atlastools` package they develop wraps these steps up into opaque functions which may be challenging for less-experienced analysts to de-bug. Additionally, bespoke functions, whilst convenient in many instances, essentially constitute a black box and may provide an impediment to learning. Over-reliance on existing functions may hinder researchers in their effort to develop a foundational understanding of their bio-logging data and the steps required to process it. MoveApps [@kölzsch2022a] takes an alternative approach to the problem, providing an online user interface where researchers can upload and explore their own tracking data. This provides an incredibly useful tool to rapidly visualize bio-logging data, especially for researchers who lack programming experience, however the background code is not immediately apparent to users and this again limits the scope for learning.
+
+Existing approaches demonstrate the need for tools that integrate data processing goals with user learning and development [@brunsdon2020]. We fill this gap by providing foundational code to start analysing tracking data. Our methods focus on accessible and robust data processing and thorough interrogation of user-defined parameters, both of which have important downstream consequences for biological inference. By sharing transparent code, we equip users with tools to learn from and adapt for their own analyses. This will make processing tracking data accessible to a wider audience, breaking down financial barriers associated with expensive training courses, while simultaneously flattening the learning curve for ecologists everywhere. Limited learning opportunities and confidence in code quality have contributed to historically low uptake of journal-mandated code archiving [@baker2016], and this will further contribute towards more open-access attitudes in science [@potts2022; @barnes2010a].
+
+Here we provide a pipeline written in the programming language R for pre-processing raw data from a range of bio-logging devices into a single cleaned data set ready for bespoke analysis. The pipeline provides a quick and reproducible way to perform these initial steps required for any analysis of bio-logging data and has built in flexibility, with sections for user input facilitating its application to a variety of device-types, such as GPS, GLS and Argos data and specific use cases. We use a handful of well-maintained core packages including `here`, `tidyverse` & `sf`, to limit dependencies and maximise stability [@here-3; @tidyverse; @sf-2]. The widespread adoption of tidy-style syntax and the deprecation of the popular `sp` package for spatial analyses, we consider the development of pipelines using these packages to be particularly timely. Additionally it is based on annotated code chunks rather than functions, providing a learning tool for less experienced researchers which prioritizes readability and user understanding. The pipeline is also accompanied by a detailed walkthrough document to aid understanding of the process. Finally, we provide a shiny app as a key visualisation tool which can aid users in the determination of appropriate parameters when filtering and processing their bio-logging data. We envision our pipeline as a time-saving tool, with the resulting clean datasets acting as a reproducible and robust common starting point upon which researchers can build their own bespoke analyses of animal movement.
+
+## Best practices
+
+Producing open-access and reproducible analyses is now a common goal for scientific research [@mckiernan2016; @culina2020], and there are various ways to version and publicly share code (such as git & github). Here, we outline the core best practices that we have followed to help to ensure that the code itself is reliable and can be reproduced by others.
+
+### Directory structure
+
+Directory structure relates to how folders and sub-folders are arranged. We recommend following the directory structure outlined by Figueiredo *et al.* [-@figueiredo2022], which suggests that all data required for a project should be inside a single directory, with separate sub-folders for raw data, processed data, and outputs (such as tables and figures). Folders are best named in snakecase format (e.g. "raw_data") to avoid issues with encoding spaces in filepaths [@trisovic2022]. For R Studio users, this folder structure is enhanced with the use of R Studio projects, whose location denotes the 'top' of the directory allowing for shorter, reproducible filepaths. We also use the `here` package to maximise reproducibility between operating systems that use different file path delimiters [@here]. When used in combination, these best practices ensure that when sharing or archiving a single project folder, other users have all the data required to recreate your analyses, and results will be reproducible regardless of their machine.
+
+### Data structure
+
+Raw bio-logging data should be saved into a "raw_data" folder in the exact format they are downloaded or decompressed from devices (i.e. completely unaltered). These files should be considered read-only, and must not be opened with other software (such as Excel) which can cause problems in changing data formats. Data from different devices will usually arrive in separate files and as such there should be one file per individual (though some cases and data sources may mean that data are combined in some way). Metadata files are generally also saved in raw_data, and are usually a single file per dataset containing all additional data for each tag deployment, for example individual ID, tag ID, tagging location/time or location of central place.
+
+### Code structure
+
+The tidyverse is an increasingly-used approach for coding in R, with a collection of core packages that use consistent grammar and data structures that allows user to quickly create analyses that can be easily understood by others [@wickham2019]. To follow tidyverse coding practices, data should adhere to three core rules: i) every variable must have its own column, ii) every observation must have its own row, and iii) every value must have its own cell [@wickham2014]. Tracking data inherently follow this tidy structure, with rows as observations, with at minimum require a column for time, plus additional columns for variables associated with each time point (e.g. latitude and longitude, depth, temp etc). Finally, focusing on using core tidyr packages (specifically `tidyverse` and `sf`), helps to maximise code longevity.
+
+## Overview of the workflow structure
+
+Here, we provide an outline of the data workflow structure and methods (Figure 1) that enable a user to import raw tracking data and metadata, perform basic to advanced cleaning, filtering and processing steps, ready for further scientific analysis. We will introduce the required data structure and outline the flexibility and utility of the workflow for anyone undertaking analysis of animal movement data.
+
+```{mermaid}
+%%| fig-cap: "Figure 1: Diagram of workflow used for analysing movement data (thick line denotes core path of workflow)"
+%%| fig-width: 8
+%%{init:{'flowchart':{'nodeSpacing': 5, 'rankSpacing': 30}}}%%
+flowchart LR
+subgraph ALL [" "]
+style ALL fill:none,stroke:none
+  S1[Read in data] ==> S3{Merge}
+  S2[Read in metadata] ==> S3 ==> A(Process) ==> B(Filter) ==> C(Save) 
+  A --> A1((Shiny app)) --> B
+  B --->|"<br/> Summarise/<br/>Visualise"|C
+  B --> B1((Shiny app)) --> C
+  end
+  C --> D
+  C --> C1((Shiny app))
+  C ==> S{Analyses}
+  subgraph OPTIONAL ["OPTIONAL"]
+    style OPTIONAL fill:#fbfbfb, stroke:#999, stroke-width:px, stroke-dasharray:5 5
+    D(Post-process) --> E(Save)
+    C1 --> D
+    D --->|"<br/> Summarise/<br/>Visualise"|E
+    end
+    E --> S
+    linkStyle 0,1,2,3,4,12 stroke-width:5px %% stroke:#00dca5 (this bit is how you edit colours of lines — no way to change colour of arrow heads)
+%% NOTE: remember to update links for finalised user guide!!
+```
+
+#### Key principles of clean data
+
+By following this workflow the user will achieve the following minimum requirements for clean data:
+
+-   Standardise date and time formats across timezones
+-   Remove rows with corrupted timestamps
+-   Include relevant metadata
+-   Remove no data values (e.g. "NA", "0,0" in lat/longs or other erroneous sensor values)
+-   Remove duplicates
+-   Remove undeployed locations (e.g. before tag attachment)
+-   Standardise spatial projections
+-   Remove erroneous speeds and locations
+-   Remove locations at start of tracking period when behaviour is influenced by capture
+
+### Import data, metadata, and combine
+
+The workflow starts with reading in raw tracking data and metadata files. Raw tracking data refers to data downloaded directly from biologging tags, which fundamentally must contain a time stamp and sensor data (e.g., location, light levels, immersion). We also provide alternative code for data that have already been partially processed, for example data downloaded from an existing repository that contains multiple tags and/or individuals. Metadata provide essential technical, biological and ecological context for the raw data, such as the tag deployment period, sex, age and population. Metadata should contain one row for each tag deployment per individual, with ID numbers corresponding to those in the raw data. The ID numbers are used to match each row of the raw data to the corresponding metadata. Additional code is provided to handle scenarios where a single individual has carried multiple tags in it's lifetime, or a single tag has been deployed on multiple individuals. Example data are saved as .csv files (see supplementary files), and guidance is provided for importing data in other text-based formats (e.g., such as .txt or .tsv.).
+
+![Figure 2. Example mutating join of raw GPS tracking data file (red) and metadata file (green) using left_join, with "animal_id" as the index column. Note that accuracy of latitude and longtitude data has been reduced for clarity.](Figure%20Images/Figure_2.png)
+
+### Cleaning
+
+The cleaning step removes data that are incorrect based on deployment periods and technical tag information. This includes limiting data to the deployment period (i.e., for loggers programmed to start ahead of deployment or not turned off immediately following retrieval), removing duplicate rows, and removing NA's or known values that correspond to missing data based on tag manufacturer guidance. Some tags record a specific 'no data' value when sensor information cannot be derived (e.g., "0,0" for latitude and longitude).
+
+### Processing
+
+During the processing step we calculate spatial and temporal metrics to allow downstream analyses and filtering of data based on ecological knowledge. These include metrics pertaining to distance traveled, net displacement, time steps, travel speed and turning angle (relative to previous trajectory) and travel bearing (relative to true north). For central place foragers, we calculate distance and bearing to the central place.
+
+All spatial data possess a coordinate reference system (CRS) that refers to the 2D projection of the earth's surface used to represent locations. The most common CRS used for biologging devices is WGS84 (units: latitude and longitude). During the processing step the user must define the CRS of their data. We recommend transforming to a 'equal area projection' for spatial calculations (e.g., distance between points), particularly when tracking data spans a large geographic range.
+
+![](Figure%20Images/Figure_3_pt1.png)
+
+![Figure 3. Processed metrics derived from animal tracking data. Plot A depicts a movement track of a Greenland White-fronted Goose with three different metrics labelled: i) step length, ii) turning angle and iii) travel bearing. The net displacement (plot B) and speed (plot C) over time is shown for the movement track plot A. Plot C depicts a single foraging trip of a Red-footed Booby from a central place (grey filled diamond). Two metrics are labelled here: iv) distance to central place and v) bearing to central place. The distance to colony (plot D) and cumulative distance traveled (plot E) are shown for the track in Plot C.](Figure%20Images/Figure_3_pt2.png)
+
+### Enter the Shiny app
+
+The Shiny app is designed to determine user-input parameters throughout the workflow by exploring their downstream effects on the resulting dataframes. When processing animal tracking data, prior to analysis, users often select rather arbitrary values by which to filter data, i.e. to eliminate erroneous speeds users often remove points creating speeds above a selected threshold. The app allows users to explore the implications of these arbitrary decisions via interactive manipulation of threshold values and subsequent visualizations that include, data summary tables, histograms of the variable of interest and maps. This app workflow is designed to be iterative. Allowing users to explore threshold choice at multiple points in the workflow, between processing and filter steps and prior to post-processing steps. There are multiple tabs to navigate within the app after users have read in their own data, in each there are a series of interactive user input threshold values (Fig X) and a number of plots and tables detailing the consequences of the user selected values (Fig Y). There are tabs for basic data filters (e.g. speed, post-deployment period and date), calculating foraging trips for central placed foragers, sub-sampling location frequency, segmenting movement tracks and finally visualizing the locations in an interactive leaflet map. To facilitate integration with the main workflow there are code chunks output at the bottom of each shiny tab that contain the selected parameter values, which can be copied into the workflow.
+
+![Figure 4. Shiny app to explore and visualise tracking data and test the influence of parameter selection on filtering and post-processing. The data filters tab is depicted here and each labelled element is described in more detail here. *Data upload*; search the users system for a file to upload to the app, this should be the equivalent of df_diagnostic. *Toggle tab*; toggle between different tabs in the app, for each tab the user input box and outputs will change. *Info Boxes*; summary information of the tracking data that is calculated automatically for the tracking uploaded by the user. *User Values*; Values that the user can alter that specify the parameters in filtering or post-processing steps. These maybe be sliders, buttons, dropdown menus or calander date selectors *Help*; Click to access a pop-up help page that guides users through each tab. *Action*; press this button to apply the current user value selection to the data. *Plot Controls*; change whether all or a single individuals is depicted in a map. The specific individual visualised can be chosen using a dropdown menu](Figure%20Images/Figure%204.jpg)
+
+### Filter
+
+The filter step allows users to remove erroneous locations based on three derived variables; 1) speed, 2) net displacement and 3) time since tag deployment. Each of these are calculated during the processing step. The threshold values selected by the user to remove data can be explored within the shiny app. Ecological knowledge can help inform the thresholds used, for instance a species' maximum travel speed or likely displacement from tagging location. We encourage users to explore a range of values in the shiny app and consider the resulting implications for the data retained.
+
+### Summarise
+
+This step provides a full summary of the data that the user has retained after the filtering step. This is an important opportunity to scrutinize the integrity of the data and determine if further filtering is required. The user selects grouping variables for the data --- we suggest initially grouping by individual but broader groupings may be required depending on the type of analysis to be undertaken (e.g., year and population). For each level of the grouping variable the following summary statistics are provided: number of locations, number of unique tracking days, start and end dates of tracking period, and the sampling frequency locations.
+
+### Visualisation
+
+Visualisations are an essential part of exploring and understanding a dataset. As such, we provide code for a series of figures and maps for the user to view the data, validate previous steps and inform future steps. This may elucidate erroneous data that have been overlooked. We also provide code to map the data, providing an initial spatial visualisation of animal movements. Plots of speed and step length offer a further opportunity to screen data for errors. Plots can be visualised with all individuals at once or faceted by individual.It should be noted that there are numerous visualisations in the shiny app that serve much the same purpose, including an interactive map to aid data visualisation and parameter determination.
+
+### Post-processing (optional)
+
+Some types of animal movement analyses require additional processing to prepare data, such as defining segments (e.g., separating tracks into bursts of continuous data to avoid over-interpolation across large gaps), sub-sampling (e.g., to downsample tracking data to facilitate comparisons among datasets with different sampling regimes), and identifying distinct trips made by central place foragers. Additional scripts are provided to perform these analyses, designed to follow on from the main code workflow. Scripts can be run iteratively if additional post-processing steps are required. Each script contains tools to summarise, visualise, and save the post-processed data. The shiny app can also be used here to aid parameter determination.
+
+![Figure 5. Example of sub-sampling GPS tracking data using an optional processing step. The data used are from two Greenland White-fronted Geese migrating from the United Kingdom to Iceland. Panel a depicts a histogram of sampling intervals present in the data, clearly there is a mixture of data collected at one and two hour resolution. Therefore to make sampling intervals consistent the data were sub-sampled to 2 hours (dashed vertical line). In panel b the output of this sub-sampling are visualized and retained (red) and removed (grey) GPS fixes are shown. The individual starting from a more southerly location was originally collected at a 1 hour resolution hence roughly every other fix is removed.](Figure%20Images/Figure_5.png)
+
+### Standardising output for tracking databases
+
+Many users may need to archive their data on an online database, which often require data to be in a specific format before files can be uploaded [@kays2021]. As such, we provide code for users to format and save their data, processed within the workflow, in the required format of two common tracking databases; (1) movebank, and (2) the seabird tracking database.
+
+## Tools and additional practical resources
+
+### Preparing your machine
+
+In order to make use of the included materials, users need to have downloaded R and the RStudio IDE [@ihaka1996]. Our code is compatible with R versions 4.0.3 - 4.2.1. In general it is recommended that users are not more that two sub-versions behind the most recent release of R.
+
+### Updating packages
+
+We make use of the most recent releases of core packages in the tidyverse [@wickham2019a], which is composed of `ggplot2` (v3.4.0), `dplyr` (v1.0.10), `tidyr` (v1.2.1), `readr` (v2.1.2), `purrr` (v1.0.1), `tibble` (v3.1.8), `stringr` (v1.5.0) and `forcats` (v0.5.1), as well as `lubridate` (v1.8.0), which is not a core package but still in tidyverse [@ggplot2; @dplyr; @tidyr; @readr; @purrr; @tibble; @stringr; @forcats; @lubridate]. We also use `sf` (v1.0-9) for spatial analyses, and the `here` package (v1.0.1) for making reproducible filepaths [@sf; @here-2].
+
+### Using GitHub
+
+ExMove GitHub repository can be utlised in a variety of ways, accessible to all levels of experience and desired user outcomes. Users can either: i) 'clone' an updatable version of the ExMove repository via `git`, ii) download a static copy of the entire repository by navigating to `<> Code` \> `Download ZIP`, or iii) view and download individual scripts as required. To maximise reproducibility and future functionality, our recommended approach would be to set up R/RStudio with `git` version control, set up and connect a personal GitHub account, then clone the ExMove repository. Additional information and links for on getting set up with GitHub and RStudio can be found in the ExMove repository readme (\[insert link here\]).
+
+### User guide
+
+We also provide a browser-based user guide that follows each step of the workflow, with worked examples in baseR and tidy code. This guide also contains example outputs of dataframes and plots produced for each step (\[insert link here\])
+
+### Shiny app
+
+The shiny app is available online at the following link:\[insert link here\]. There is an upload limit so users can either explore the app with examples data sets we provide or a subset of their own data. If the user wants to run the app on their full data set then we recommend that they fork the repository and then run the app locally on their own machine.
+
+### FAQ's
+
+Some important principles of movement and spatial analyses can be a common source of confusion (for example: understanding data projections). Given ExMove's primarly goal as a learning tool, we provide information to help facilitate better understanding of these core concepts, and links to useful materials made available by others (FAQ page can be found here: \[insert link here\]).
+
+## Try it yourself
+
+Within the GitHub repo we provide three road-tested example datasets for users to familiarise themselves with running the pipeline. These datasets are from African penguins (*Spheniscus demersus*) breeding in South Africa, Red-footed boobies (*Sula leucogaster*) breeding in the Chagos Archipelago, and Greenland white-fronted goose (*Anser albifrons flavirostris*) migrating from Ireland and Scotland to Greenland (see Figure 6).
+
+![Figure 6. Visualisation of the three example datasets provided as part of the pipeline. A: Red-footed boobies. B: Greenland-white fronted geese. C: African penguin.](Figure%20Images/Figure_6_annotated.png)
+
+### Red-footed boobies datset
+
+GPS data from three red-footed boobies tracked during 2016 and 2016 (Figure 6A). Data represent central-place foraging trips of breeding adults from two colonies, Diego Garcia and Nelsons Island in the Chagos Archipelago, central Indian Ocean. Tagging methodology and ethical considerations can be found in Trevail *et al.* (In review, MEPS).
+
+### Greenland white-fronted geese
+
+GPS data from four Greenland White-fronted Geese tracked during spring 2019/18 (Figure 6B). These data cover the entire spring migration from Ireland and Scotland to Greenland with a stopover in southern Iceland. Two individuals originate from Islay, Scotland and two from Wexford, Ireland. Tagging methodology and ethical considerations can be found in Ozsanlav-Harris *et al.* [-@ozsanlav-harris2022].
+
+### African penguins
+
+GPS data from three African penguins tracked between 2011-2013 (Figure 6C). These data cover foraging trips by breeding adults during chick-rearing. All individuals were tagged on Robben Island, off the coast of South Africa. Additional information regarding tagging and ethical considerations can be found in Campbell *et al.* [-@campbell2019].
+
+## Acknowledgments
+
+We thank Richard Sherley for providing a sample of tracking data from African penguins, and the Widlfowl and Wetlands Trust for providing tracking data from Greenland White-fronted Geese. Alice Trevail was funded by the Bertarelli Programme in Marine Science, who also funded collection of red-footed booby data. We also thank Evelyn Alexander, Jacqueline Glencross and Tess Handby for providing valuable feedback on the code, workflow and Shiny app.
+
+## Author contributions
+
+All authors contributed equally to the manuscript.
