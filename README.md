@@ -1,5 +1,5 @@
-# The Great Coding Workshop
-This workshop is meant as an accessible introduction to analysing tracking data using R. We make use of the [tidyverse](https://www.tidyverse.org/packages/) collection and simple features ([sf](https://r-spatial.github.io/sf/index.html)) packages to read, clean and process multiple data files, ready for a range of analyses. Go to the workflow script by clicking [here](R/Workflow.R)
+# ExMove: An open-source toolkit for processing and exploring bio-logging data in R
+This code repository is meant as an accessible introduction to analysing tracking data using R. We make use of the [tidyverse](https://www.tidyverse.org/packages/) collection and simple features ([sf](https://r-spatial.github.io/sf/index.html)) packages to read, clean and process multiple data files, ready for a range of analyses. Go to the workflow script by clicking [here](R/Workflow.R)
 
 #### _Authors_:
 
@@ -22,7 +22,7 @@ This workshop is meant as an accessible introduction to analysing tracking data 
 ### Code Description
 
 #### Main workflow
-- `R/Workflow.R` - WIP file for cleaning tracking data
+- `R/Workflow.R` - R script for cleaning tracking data
 - `app/Tracking data diagnostic app.R` - Shiny app for exploring how data filters/cleaning/re-sampling influences the data and derived stats
 
 #### Optional/troubleshooting scripts
@@ -33,7 +33,7 @@ This workshop is meant as an accessible introduction to analysing tracking data 
 ### Data Description
 #### Tracking data files
 - `Data/RFB` - folder containing GPS tracking data files from three Red-footed boobies, from two populations
-- `Data/SAP` - folder containing GPS tracking data files from four South African penguins
+- `Data/SAP` - folder containing GPS tracking data files from three South African penguins
 - `Data/GWfG` - folder containing GPS tracking data files from four migrating Greenland White-fronted Geese
 
 #### Metadata files
@@ -43,5 +43,5 @@ This workshop is meant as an accessible introduction to analysing tracking data 
 - `Data/RFB_CPshape` - folder containing shape files for central place of RFB data
 
 [^1]: The entire repo can technically be downloaded without cloning (e.g. using 
-`Code ▾` > `Download ZIP`), but any pipeline downloaded this way will be a static copy that won't receive future updates
+`Code▾` > `Download ZIP`), but any pipeline downloaded this way will be a static copy that won't receive future updates
 
