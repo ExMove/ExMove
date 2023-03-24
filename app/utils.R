@@ -23,8 +23,10 @@ MapFunc <- function(Mapdata = Mapdata, column = column, label = label, vartype =
   ## create a vector of all the values going to be used to colour the points
   colour_column <- data.frame(MapTracks[,index])
   
-  if(vartype == "numeric" | vartype == "time"){colour_column <- as.numeric(colour_column[,1])}
-  if(vartype == "factor"){colour_column <- as.factor(colour_column[,1])}
+  #if(vartype == "numeric" | vartype == "time"){colour_column <- as.numeric(colour_column[,1])}
+  if(vartype == "numeric" | vartype == "Circ"){ colour_column <- as.numeric(colour_column[,1]) }
+  if(vartype == "factor"){ colour_column <- as.factor(colour_column[,1]) }
+  if(vartype == "time"){ colour_column <- as.numeric(hour(hms(colour_column[,1]))) }
   
   ## make locations an sf object
   sf_locs_inc <- st_as_sf(MapTracks, coords = c("Lon","Lat")) %>% 
@@ -41,7 +43,8 @@ MapFunc <- function(Mapdata = Mapdata, column = column, label = label, vartype =
   ## Needs to be continuous for categorical variables may just have to add an if statment here
   if(vartype == "numeric" | vartype == "time"){pal <- colorNumeric(palette = "viridis", domain = colour_column)}
   if(vartype == "factor"){pal <- colorFactor(palette = "Spectral", domain = colour_column)}
-  
+  if(vartype == "Circ"){pal <- colorNumeric(palette = colorRamp(c("#481567FF", "#404788FF", "#33638DFF", "#29AF7FFF", "#B8DE29FF", "#FDE725FF", 
+                                                                  "#B8DE29FF", "#29AF7FFF", "#33638DFF", "#404788FF", "#481567FF"), space = "rgb", interpolate = "linear"), domain = colour_column)}
   
   ## Use leaflet to create the plot
   MAP <- leaflet() %>% 
@@ -54,7 +57,7 @@ MapFunc <- function(Mapdata = Mapdata, column = column, label = label, vartype =
     
     ##add the track as polylines 
     addPolylines(data = sf_lines_inc, weight = 2, color = "black") %>% 
-    ## add the locaitons and colour by the chosen variable
+    ## add the locations and colour by the chosen variable
     addCircleMarkers(data = sf_locs_inc, radius = 3, weight = 2, opacity = 0.8, fillOpacity = 0.8, color = ~pal(colour_column)) %>% 
     addLegend(position = "bottomleft", pal = pal, values = colour_column, title = label, opacity = 1) %>% 
     ## add a scale bar

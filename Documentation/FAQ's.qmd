@@ -31,6 +31,15 @@ When we open a `.Rproj` file (which should be the starting point for this workfl
 
 By combining Rstudio projects with the [`here`](https://here.r-lib.org/) package, we can create relative filepaths that work across machines, so you won't have to edit a complicated filepath to get the code to run (for more info see the ['Getting started'](https://here.r-lib.org/articles/here.html) section of the `here` documentation).
 
+## Reporting in a paper
+
+### How to report usage of this workflow in a paper
+If you have used this workflow and you wish to report this in a scientific publication then we provide the text below as a suggestion as to how the user might do so.
+
+"Animal tracking data in this study was cleaned following the key principles of clean data in Langley *et al.* (2023). Duplicated and erroneous data points were removed, a maximum speed filter of **XX**m/s applied and data **YY**hours after initial deployment removed"
+
+
+
 ## Data problems
 
 ### What if I have multiple data files for an individual?

@@ -1,0 +1,2 @@
+unique_id,tag_id,sex_m_male_f_female_u_unknown,tagging_location,tag_type_e_g_argos_ptt_gls_etc,date_of_tagging_start,time_tagging_start,latitude_of_release_decimal_degrees,longitude_of_release_decimal_degrees,tag_recovered_yes_or_no,latitude_of_recovery_decimal_degrees,longitude_of_recovery_decimal_degrees
+TrinPetrel_X102,5H41371,F,Round Island,GLS,05/02/2011,15:48:00,-19.854,57.784,Yes,-19.854,57.784

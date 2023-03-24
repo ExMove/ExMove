@@ -35,7 +35,7 @@ library(data.table)
 ## Data must contain individual ID, timestamp, and coordinates
 ## Here, we work on data formatted in the main workflow (df_diagnostic)
 ## Coordinates for the central place = CPLon & CPLat
-## Distance to colony in metres = CPdist (calculated in main workflow)
+## Distance to colony in metres = CPdist (calculated in optional script in section 4 in main workflow)
 
 ## Acronym definition: CP = central place
 
@@ -67,7 +67,7 @@ df_diagnostic <- read_csv(filepath)
 ## Here, we define trips using a threshold of distance from the CP
 ## This code will work based on distance calculated in the main workflow
 ## This works with data from multiple populations with different CPs if specified in main workflow
-## skip this step if using Option B or C
+## skip this step if using Option B
 
 #--------------------#
 ##USER INPUT START##
@@ -91,7 +91,7 @@ df_CP <- df_diagnostic %>%
 #-----------------------------------------------------------#
 
 ## Here, we define trips using shape file defining an area around the CP
-## skip this step if using Option A or C
+## skip this step if using Option A
 ## For multiple populations, we rely on the shape file having attribute data specifying the population name
 ## This population name needs to match the name in the data, exactly, for subsequent conditional formatting
 
@@ -135,7 +135,7 @@ df_CP <- df_diagnostic %>%
 
 
 ## Sense check of trip classification = make sure it looks right
-## Working on df_CP from option A, B or C
+## Working on df_CP from option A or B
 
 ## Plot colony distance over time
 ## we should see periods of time at the CP at the bottom of the y axis, 

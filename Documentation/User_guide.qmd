@@ -17,7 +17,7 @@ author:
 link-external-newwindow: true #open links in new window
 code-link: true #link to packages
 code-tools:
-      source: https://github.com/AliceTrevail/Code-workshop/blob/9f86b183880d9260c3c7f40007b7732566393d56/R/test.R #location for R script (update if test.R name is changed)
+      source: https://github.com/AliceTrevail/Code-workshop/blob/28be59a76c7f3cffdb6f8c0599a64e5619eb8ba4/R/Workflow.R #location for workflow R script
 toc: true #table of contents
 execute:
   echo: true #show code chunk source (override with "#| output= true/false")
@@ -28,37 +28,42 @@ project:
 ## Introduction
 
 This user guide can be used as a walkthrough for reading and processing tracking data files with the `Workflow.R` script. 
-You can use the example datasets provided in `TestData`, or try with your own tracking data (see [Pre-flight checks](#pre-flight-checks) for details on data requirements and structure).
+You can use the example datasets provided in `Data`, or try with your own tracking data (see [Pre-flight checks](#pre-flight-checks) for details on data requirements and structure).
 
 The following diagram gives an overview of the workflow (boxes are hyperlinked to each section):
 
 ```{mermaid}
+%%| fig-label: fig-1
 %%| fig-width: 9
-%%{init:{'flowchart':{'nodeSpacing': 70, 'rankSpacing': 30}}}%%
+%%| fig-cap: "Figure 1: Diagram of workflow used for analysing movement data (thick line denotes core path of workflow)"
+%%{init:{'flowchart':{'nodeSpacing': 5, 'rankSpacing': 30}}}%%
 flowchart LR
-  A[Read in data] --> C{Merge}
-  B[Read in metadata] --> C
-  C --> D(Filter)
-  D --> E(Process)
-  E --> F(Save for Shiny)
-  F --> X(("Shiny app<br/>(optional)")) --> G
-  F --->|Skip app|G(Filter II)
-  G --> H(Summarise)
-  H --> I(Save/export)
-  H --> J(Visualise)
-    subgraph OPTIONAL ["post-processing (optional)"]
-    style OPTIONAL fill:#E4E4E4,stroke:#999,stroke-width:px,stroke-dasharray: 5 5
-        direction LR
-        Z("- Resample data<br/>- Define segments<br/>- Define trips")
-        style Z text-align:left
+subgraph ALL [" "]
+style ALL fill:none,stroke:none
+  S1[Read in data] ==> S3{Merge}
+  S2[Read in metadata] ==> S3 ==> A(Process) ==> B(Filter) ==> C(Save) 
+  A --> A1((Shiny app)) --> B
+  B --->|"<br/> Summarise/<br/>Visualise"|C
+  B --> B1((Shiny app)) --> C
+  end
+  C --> D
+  C --> C1((Shiny app))
+  C ==> S{Analyses}
+  subgraph OPTIONAL ["OPTIONAL"]
+    style OPTIONAL fill:#fbfbfb, stroke:#999, stroke-width:px, stroke-dasharray:5 5
+    D(Post-process) --> E(Save)
+    C1 --> D
+    D --->|"<br/> Summarise/<br/>Visualise"|E
     end
- H --> OPTIONAL
-  click A "#read-in-data-files";
-  click B "#merge-with-metadata";
-  click C "#merge-with-metadata";
-  click D "#filtering-i";
-  click E "#processing-i";
-  click F "#save-for-shiny";
+    E --> S
+    linkStyle 0,1,2,3,4,12 stroke-width:5px %% stroke:#00dca5 (this bit is how you edit colours of lines — no way to change colour of arrow heads)
+%% NOTE: remember to update links for finalised user guide!!
+  click S1 "#read-in-data-files";
+  click S2 "#merge-with-metadata";
+  click S3 "#merge-with-metadata";
+  click A "#processing-i";
+  click B "#filtering-i";
+  click C "#save-for-shiny";
   click G "#filtering-ii";
   click H "#summarise-data";
   click I "#save-filtered-and-summary-data";
@@ -71,7 +76,7 @@ flowchart LR
 -   All code embraces the core principles of how to structure ['tidy data'](https://r4ds.had.co.nz/tidy-data.html)
 -   We use [RStudio projects](https://r4ds.had.co.nz/workflow-projects.html#rstudio-projects) and the [`here`](https://here.r-lib.org/) package to build relative filepaths that are reproducible
 -   Requires [`tidyverse`](https://www.tidyverse.org/), [`data.table`](https://github.com/Rdatatable/data.table), [`sf`](https://r-spatial.github.io/sf/) and [`here`](https://here.r-lib.org/) packages to be installed
--   Use our example data sets in the TestData folder (RFB, GAN, SAP) or provide your own data
+-   Use our example data sets in the Data folder (RFB, GAN, SAP) or provide your own data
 
 #### User inputs
 
@@ -101,7 +106,7 @@ example_input <- "uservalue" # In the R code, user input sections appear like th
 -   Throughout, we will use some key functions to inspect the data (e.g., `head` for top rows, `str` for column types, and `names` for column names)
 
 ##### Required data structure:
--   Data files should all be stored in a specific folder (ideally within `TestData`)
+-   Data files should all be stored in a specific folder (ideally within `Data`)
 -   Data for each deployment/individual should be in a separate file
 -   ID should be in tracking data file name, and should be the same length for all individuals
 -   Tracking data must contain timestamp and at least one other sensor column
@@ -143,7 +148,7 @@ library(here)
 Set filepath for the folder containing raw data files (this code will try to open all files matching the file pattern within this folder, so it is best if this folder only contains the raw data files).
 
 ```{r}
-filepath <- here("TestData", "RFB") #create relative filepath using folder names
+filepath <- here("Data", "RFB") #create relative filepath using folder names
 ```
 
 Define common file pattern to look for. An asterisk (`*`) is the wildcard, will will match any character except a forward-slash (e.g. `*.csv` will import all files that end with ".csv").
@@ -391,7 +396,7 @@ Metadata are an essential piece of information for any tracking study, as they c
 First we define the path to our metadata file:
 
 ```{r}
-filepath_meta <- here("Testdata","RFBTest_Metadata.csv")
+filepath_meta <- here("Data","RFB_Metadata.csv")
 ```
 
 Then much like in Step 1, we define the date format(s) used (for passing to [`lubridate`](https://lubridate.tidyverse.org/reference/lubridate-package.html)) (`d` = day as decimal, `m` = month as decimal, `y` = year without century - 2 digits, `Y` = year with century - 4 digits).
@@ -429,7 +434,7 @@ df_metadataslim <- data.frame(ID = df_metadata$BirdID,
                               CPLat = df_metadata$NestLat,
                               CPLon = df_metadata$NestLong,
                               Species = df_metadata$Species,
-                              Population = df_metadata$Colony,
+                              Population = df_metadata$Population,
                               Age = df_metadata$Age, 
                               BreedingStage = df_metadata$BreedingStage)
 ```
@@ -615,7 +620,7 @@ species_code <- "RFB"
 
 Then we define a file path for saving the working dataframe files (if you're defining a new folder, make sure to create it before attempting to save into it).
 ```{r}
-filepath_dfout <- here("TestDataOutputs","WorkingDataFrames")
+filepath_dfout <- here("DataOutputs","WorkingDataFrames")
 ```
 
 Next we define file name for the saved file by pasting the species code to `_diagnostic` (can change if you want to use a different naming system).
@@ -650,7 +655,26 @@ rm(list=ls()[!ls() %in% c("df_diagnostic")]) #specify objects to keep
 
 This second filtering stage is designed to remove outliers in the data, and you can use outputs from the shiny app to inform these choices. If you don't need to filter for outliers, skip this step and keep using `df_diagnostic` in the next steps.
 
-##### Define threshold values
+### Accessing Shiny App
+
+#### OPTION 1:
+Access the shiny app online at the following link: [https://lukeozsanlav.shinyapps.io/exmove_explorer/](https://lukeozsanlav.shinyapps.io/exmove_explorer/)
+
+#### OPTION 2:
+Alternatively run the app from your local R session with the following code
+``` {r}
+#| eval: false
+if (!require("shiny")) install.packages("shiny")
+library(shiny)
+runGitHub("ExMoveApp", username = "LukeOzsanlav",
+          ref = "master", subdir = "app")
+```
+
+#### App Usage:
+- Upload your csv version of df_diagnostic to the app by clicking the `Upload data` button in the top left. 
+- At the bottom of each app page are printed code chunks that can be copied into subsequent user input section. These code chunks contain the user input values you manually select in the app
+
+#### Define threshold values
 
 ::: {.callout-warning icon="false"}
 #### 🧠 User input required
@@ -777,12 +801,12 @@ species_code <- "RFB"
 
 Next we define the folder file path for saving our filtered data
 ```{r}
-filepath_filtered_out <- here("TestDataOutputs","WorkingDataFrames")
+filepath_filtered_out <- here("DataOutputs","WorkingDataFrames")
 ```
 
 Then we define the file path for saving summary dataframes
 ```{r}
-filepath_summary_out <- here("TestDataOutputs","SummaryDataFrames")
+filepath_summary_out <- here("DataOutputs","SummaryDataFrames")
 ```
 
 Here we define file names for saved files, and paste the species code to `_summary_`, followed by `ind` (individual level) or `pop` (population level). You can change this if you want to use a different naming system.
@@ -833,7 +857,7 @@ dpi <- 300
 Define filepath to read out plots
 
 ```{r}
-out_path <- here("TestDataOutputs","Figures")
+out_path <- here("DataOutputs","Figures")
 ```
 
 Define species code for figure names
