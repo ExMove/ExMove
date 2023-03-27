@@ -42,10 +42,10 @@ This toolkit is meant as an accessible introduction to analysing tracking data u
 
 We provide four diffferent types of tracking data from three different species:
 
-<img src="Manuscript/Figure%20Images/RFB_image.png" id="id" class="class" width=25% height=25% > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="Manuscript/Figure%20Images/RFB_IMM_image.png" id="id" class="class" width=25% height=25%  > &nbsp;&nbsp;&nbsp;&nbsp;
-<img src="Manuscript/Figure%20Images/TRPE_image.png" id="id" class="class" width=10% height=10%> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="Manuscript/Figure%20Images/GWF_image.png" id="id" class="class" width=25% height=25%  > &nbsp;
+<img src="Data/Illustrations/RFB_image.png" id="id" class="class" width=25% height=25% > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="Data/Illustrations/RFB_IMM_image.png" id="id" class="class" width=25% height=25%  > &nbsp;&nbsp;&nbsp;&nbsp;
+<img src="Data/Illustrations/TRPE_image.png" id="id" class="class" width=10% height=10%> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="Data/Illustrations/GWF_image.png" id="id" class="class" width=25% height=25%  > &nbsp;
 
 #### Tracking data files
 - `Data/RFB` - folder containing GPS tracking data files from three adult Red-footed boobies (*Sula sula*), from two populations
