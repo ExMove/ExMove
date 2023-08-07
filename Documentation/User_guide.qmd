@@ -1,10 +1,19 @@
 ---
 title: "ExMove user guide"
-format: 
+format:
   html:
     page-layout: full
     output-file: "User_guide"
     output-ext:  "html"
+  pdf: 
+    geometry:
+      - top=30mm
+      - left=30mm
+    colorlinks: true
+    fig-pos: 'h'
+    fontfamily: libertinus
+    fontsize: 12pt
+#renderthis::to_pdf(here("Documentation", "User_guide.html")) #run this line in console
 author:
   - name: Alice Trevail
     orcid: 0000-0002-6459-5213
@@ -26,54 +35,44 @@ project:
   execute-dir: project #use project as top level
 ---
 
+
 ## Introduction
 
 This user guide can be used as a walkthrough for reading and processing tracking data files with the `Workflow.R` script. 
 You can use the example datasets provided in `Data`, or try with your own tracking data (see [Pre-flight checks](#pre-flight-checks) for details on data requirements and structure).
 
-The following diagram gives an overview of the workflow (boxes link to each section):
+The following diagram gives an overview of the workflow (boxes link to relevant section):
 
 ```{mermaid}
 %%| fig-label: fig-1
 %%| fig-width: 9
 %%| eval: true
 %%| echo: false
-%%| fig-cap: "Figure 1: Diagram of workflow used for analysing movement data (thick line denotes core path of workflow)"
-%%{init:{'flowchart':{'nodeSpacing': 5, 'rankSpacing': 30}}}%%
+%%| fig-cap: "Figure 1: Diagram of workflow used for analysing movement data (thick line denotes core path of code)"
+%%{init:{'flowchart':{'nodeSpacing': 20, 'rankSpacing': 30}}}%%
 flowchart LR
-subgraph ALL [" "]
-style ALL fill:none,stroke:none
-  S1[Read in data] ==> S3{Merge}
-  S2[Read in metadata] ==> S3 ==> A(Clean) ==> B(Process) ==> C(Save) 
-  A --> A1((Shiny app)) --> B
-  B --->|"<br/> Summarise/<br/>Visualise"|C
-  B --> B1((Shiny app)) --> C
+  S1[Read in data] ==> S3(Merge)
+  S2[Read in metadata] ==> S3 ==> A(Clean)
+  subgraph shiny ["(Parameter determination in Shiny app)"]
+  style shiny fill:#fbfbfb, stroke:#d3d3d3, stroke-width:px
+  A(Clean) ==> B(Process) ==> C(Filter)
+  D(Optional<br/>scripts)
   end
-  C --> D
-  C --> C1((Shiny app))
-  C ==> S{Analyses}
-  subgraph OPTIONAL ["OPTIONAL"]
-    style OPTIONAL fill:#fbfbfb, stroke:#999, stroke-width:px, stroke-dasharray:5 5
-    D(Filter) --> E(Save)
-    C1 --> D
-    D --->|"<br/> Summarise/<br/>Visualise"|E
-    end
-    E --> S
-    linkStyle 0,1,2,3,4,12 stroke-width:5px %% stroke:#00dca5 (this bit is how you edit colours of lines — no way to change colour of arrow heads)
+  C ==> S{Standardised<br/>dataset}
+  C --> D --> S
+  S --> E(Analyses)
+  S ==> F(Archive)
+  linkStyle 6,7 stroke-dasharray: 4 4
 %% NOTE: remember to update links for finalised user guide!!
   click S1 "#read-in-data-files";
   click S2 "#merge-with-metadata";
   click S3 "#merge-with-metadata";
   click A "#cleaning";
   click B "#processing";
-  click C "#save-for-shiny";
-  click D "#filtering";
-  click E "#save-data";
-  click A1 "#shiny-app"
-  click B1 "#shiny-app"
-  click C1 "#shiny-app"
+  click C "#filtering";
+  click S "#save-data";
 %%  click ? "#summarise-data";
-%%  click ? "#visualisation-i";
+%%  click ? "#visualisation";
 ```
 
 #### Dependencies:
@@ -140,8 +139,8 @@ Just before starting we load in all the packages we will need for the workflow (
 #| eval: true
 #| output: false
 library(data.table) # data manipulation
-library(tidyverse) # data manipulation, date time parsing and plotting
-library(lubridate) # this should be loaded in tidyverse, but adding just in case
+library(tidyverse) # data reading, manipulation and plotting
+library(lubridate) # working with date-time data
 library(sf) # spatial data handling and manipulation
 library(here) # reproducible filepaths
 ```
@@ -155,19 +154,19 @@ library(here) # reproducible filepaths
 Throughout the script, we'll be saving files using a species code as a file/folder identifier. Let's define this object here for consistency:
 
 ```{r}
-species_code <- "RFB_IMM"
+species_code <- "RFB"
 ```
 
 Set filepath for the folder containing raw data files (this code will try to list and open all files matching the file pattern within this folder, so it is best if this folder contains only the raw data files).
 
 ```{r}
-filepath <- here("Data", "RFB_IMM")  #create relative filepath using folder names
+filepath <- here("Data", "RFB")  #create relative filepath using folder names
 ```
 
 Define common file pattern to look for. An asterisk (`*`) is the wildcard, will will match any character except a forward-slash (e.g. `*.csv` will import all files that end with ".csv").
 
 ```{r}
-filepattern <- "*.txt" # data file format (e.g. we'd use "*.csv" to import all csv files within filepath folders)
+filepattern <- "*.csv" # data file format
 ```
 
 Let's view the file names, to check that we have the files we want & find ID position (this list will include names of sub-folders).
@@ -182,7 +181,7 @@ Adjust these numbers for extracting the ID number from file name using [`stringr
 
 ```{r}
 IDstart <- 1 #start position of the ID in the filename 
-IDend <- 6 #end position of the ID in the filename
+IDend <- 7 #end position of the ID in the filename
 ```
 
 Now, let's inspect the data by reading in the top of the first data file as raw text. To inspect the first row of all data files (if you wanted to check column names), you can remove the `[1]` and change `n_max = 1`).
@@ -197,11 +196,11 @@ Define number of lines at top of file to skip (e.g. if importing a text file wit
 skiplines <- 0
 ```
 
-Define date format(s) used (for passing to [`lubridate`](https://lubridate.tidyverse.org/reference/lubridate-package.html)) (`d` = day as decimal, `m` = month as decimal, `y` = year without century - 2 digits, `Y` = year with century - 4 digits).
+Define date format(s) used (for passing to [`lubridate`](https://lubridate.tidyverse.org/reference/lubridate-package.html)) (`d` = day as decimal, `m` = month as decimal, `y` = year without century, `Y` = year with century). Parsing will work the same for different date delimiters (e.g. "dmY" will work for both `01-12-2022` and `01/12/2022`). </br>
 `lubridate` can even parse more than one date/time format within a dataframe, so if your data include multiple formats, make sure they are all included. Here, we've included some common combinations --- modify if your data include a different format
 
 ```{r}
-date_formats <- c("dmY", "Ymd") #specify date formats (e.g. "dmY" works for 01-12-2022 and 01/12/2022)
+date_formats <- c("dmY", "Ymd") #specify date formats 
 datetime_formats <- c("dmY HMS", "Ymd HMS") #specify date & time format 
 ```
 
@@ -234,14 +233,14 @@ read_lines(test, n_max = 5, skip = skiplines)
 Set delimiter to use within `read_delim`.
 
 ```{r}
-user_delim <- "\t"
-user_trim_ws <- TRUE # Should leading/trailing whitespaces be trimmed from each field before parsing?
+user_delim <- ","
+user_trim_ws <- TRUE # Should leading/trailing whitespaces be trimmed
 ```
 
 Finally, data need an ID column, either be the tag ID ("TagID") or individual ID ("ID"). Specify ID type here, for later matching with the same column in the metadata:
 
 ```{r}
-ID_type <- "TagID"
+ID_type <- "ID"
 ```
 
 :::
@@ -254,14 +253,22 @@ ID_type <- "TagID"
 With the user inputs specified in the previous section, we'll now read in and merge all tracking data files directly from the github repository, extracting the ID from the filename of each file.
 
 ```{r}
-df_combined <- fs::dir_ls(path = filepath, glob = filepattern, #use our defined filepath and pattern
-                          type = "file",  recurse = TRUE) %>% # recurse = T searches all sub-folders
-  purrr::set_names(nm = basename(.)) %>% # removing path prefix (makes filename more manageable)
-  purrr::map_dfr(read_delim, .id="filename", #read all the files in using filename as ID column
-                 col_types = cols(.default = "c"), col_names = colnames, 
-                 skip = skiplines, delim = user_delim, trim_ws = user_trim_ws) %>% 
-  mutate("{ID_type}" := str_sub(string = filename, start = IDstart, end = IDend), #substring ID from the filename (start to end of substring)
-         .after = filename) #position the new ID column after filename column
+df_combined <- fs::dir_ls(path = filepath, # use our defined filepath
+                          glob = filepattern, # use file pattern
+                          type = "file",  # only list files
+                          recurse = TRUE # look inside sub-folders
+                          ) %>% 
+  purrr::set_names(nm = basename(.)) %>% # remove path prefix
+  purrr::map_dfr(read_delim, # use read_delim function
+                 .id = "filename", # use filename as ID column
+                 col_types = cols(.default = "c"), # as character by default
+                 col_names = colnames, # use colnames object made above
+                 skip = skiplines, # how many lines to skip
+                 delim = user_delim, # define delimiter
+                 trim_ws = user_trim_ws) %>% # trim characters or not
+  mutate("{ID_type}" := str_sub(string = filename, # extract ID from filename 
+                                start = IDstart, end = IDend), # ID position
+         .after = filename) # move the new ID column after filename column
 df_combined
 colnames(df_combined)
 ```
@@ -273,9 +280,17 @@ If your data are combined into one or multiple csv files containing an ID column
 ```{r}
 #| eval: false
 # ** Option **
-df_combined <- fs::dir_ls(path = filepath, recurse = TRUE, type = "file",  glob = filepattern) %>% # recurse = T searches all sub-folders
-  purrr::map_dfr(read_delim, col_types = cols(.default = "c"), col_names = colnames, 
-                 skip = skiplines, delim = user_delim, trim_ws = user_trim_ws) 
+df_combined <- fs::dir_ls(path = filepath, #use filepath
+                          glob = filepattern, # use file pattern
+                          type = "file",  # only list files
+                          recurse = TRUE # look inside sub-folders
+                          ) %>% 
+  purrr::map_dfr(read_delim, # use read_delim function
+                 col_types = cols(.default = "c"), # as character by default
+                 col_names = colnames, # use colnames object made above
+                 skip = skiplines, # how many lines to skip
+                 delim = user_delim, # define delimiter
+                 trim_ws = user_trim_ws) # trim characters or not
 df_combined
 ```
 :::
@@ -292,8 +307,8 @@ First, data need a time stamp, either in separate columns (e.g., "Date" and "Tim
 **NB:** These have to be in the same order as specified in earlier user input, i.e. "Date" and "Time" have to be the right way round
 
 ```{r}
-datetime_formats # a reminder of the datetime orders previously specified
-datetime_colnames <- c("DateTime") # or c("Date", "Time")
+datetime_formats # previously specified datetime formats
+datetime_colnames <- c("Date", "Time") # or c("DateTime") 
 ```
 
 You can also have additional columns depending on the type of logger used, for example:
@@ -308,13 +323,11 @@ You can also have additional columns depending on the type of logger used, for e
 Here we're going to slim down the dataset by selecting the necessary columns & coercing some column names. You should change column names below to those present in your tracking data, additional columns can be added (see above examples). This process standardises important column names for the rest of the workflow (e.g., `TagID`, `Lat`, `Lon`)
 
 ```{r}
-df_slim <- data.frame(TagID = as.character(df_combined$TagID),
-                      DateTime = df_combined$`Date Time`,
-                      lc = df_combined$Fix, # Argos fix quality
-                      Lat = df_combined$`Lat1(N)`,
-                      Lon = df_combined$`Long1(E)`,
-                      Lat2 = df_combined$`Lat2(N)`,
-                      Lon2 = df_combined$`Long2(E)`)
+df_slim <- data.frame(ID = as.character(df_combined$ID),
+                      Date = df_combined$Date,
+                      Time = df_combined$Time,
+                      Y = df_combined$Latitude,
+                      X = df_combined$Longitude)
 ```
 :::
 
@@ -342,23 +355,29 @@ Now our `df_slim` is ready, we need to create a `DateTime` column. Using the `da
 
 ```{r}
 df_slim <- df_slim %>%
-  tidyr::unite(col = "DateTime_unparsed", all_of(datetime_colnames), sep = " ", remove = FALSE) %>% 
-  mutate(DateTime = lubridate::parse_date_time(DateTime_unparsed, #use lubridate to parse DateTime 
-                                               orders=datetime_formats, #using the datetime_formats object we made earlier
-                                               tz=trackingdatatimezone),
-         Date = as_date(DateTime),
-         Year = year(DateTime)) %>%
+  tidyr::unite(col = "DateTime_unparsed", # united column name
+               all_of(datetime_colnames), # which columns to unite
+               sep = " ",  # separator between values in new column
+               remove = FALSE # remove original columns?
+               ) %>% 
+  mutate(DateTime = lubridate::parse_date_time(DateTime_unparsed, # parse DateTime 
+                                               orders = datetime_formats, # formats
+                                               tz = trackingdatatimezone), # timezone
+         Date = lubridate::as_date(DateTime),
+         Year = lubridate::year(DateTime)) %>%
   select(-DateTime_unparsed)
 ```
 
 ::: {.callout-note icon="true"}
-If you see any `failed to parse` warnings, this means a date or time was not in the correct format for `lubridate` to create a date_time object, producing NA's (which will be dealt with later). We can look at the failing rows using the following code:
+`n failed to parse` warnings means a date or time was not in the correct format for `lubridate` to create a date_time object, producing `NA`s. We can look at the failing rows using the following code:
 
 ```{r}
 Fails <- df_slim %>% filter(is.na(DateTime)==T)
 head(Fails)
 ```
-::: 
+Now we can see the issue: `Date` is empty, and `Time` is saved as a number. We'll remove this row in the @cleaning section, so don't need to do anything else for the moment.
+
+:::
 
 Lastly, we make a `df_raw` dataframe by sorting using ID and DateTime, dropping NA's in DateTime column
 
@@ -380,7 +399,7 @@ rm(list=ls()[!ls() %in% c("df_raw",
 
 ## 2. Merge with metadata {#merge-with-metadata}
 
-Metadata are an essential piece of information for any tracking study, as they contain important information about each of your data files, such as tag ID, animal ID, or deployment information, that we can add back into to our raw data when needed. For example, the table below shows what the first few columns of a metadata file looks like for our example immature red-footed booby data:
+Metadata are an essential piece of information for any tracking study, as they contain important information about each data file, such as tag ID, animal ID, or deployment information, that we can add back into to our raw data when needed. For example, the table below shows what the first few columns of the metadata file looks like for our example red-footed booby data:
 
 ```{r}
 #| echo: false
@@ -388,17 +407,19 @@ Metadata are an essential piece of information for any tracking study, as they c
 #| message: false
 #| warning: false
 library(flextable)
-metadata_table <- read_csv(here("Data", "RFB_IMM_Metadata.csv")) %>%
-  mutate(Tag_ID = as.character(Tag_ID)) %>%
+metadata_table <- read_csv(here("Data", "RFB_Metadata.csv")) %>%
+  #mutate(Tag_ID = as.character(TagID)) %>%
   flextable() %>%
   theme_vanilla() %>%
   autofit() %>%
   #set_table_properties(align = "left", layout = "autofit") %>%
   align(align = "left", part = "all") %>%
-  fontsize(size = 11, part = "header") %>%
-    fontsize(size = 10.5, part = "body")
+  flextable::fontsize(size = 8, part = "header") %>%
+    flextable::fontsize(size = 7.5, part = "body")
 metadata_table
 ```
+
+##### Select file and date/time formats
 
 ::: {.callout-warning icon="false"}
 #### 🧠 User input required
@@ -406,7 +427,7 @@ metadata_table
 First we define the path to our metadata file:
 
 ```{r}
-filepath_meta <- here("Data","RFB_IMM_Metadata.csv")
+filepath_meta <- here("Data","RFB_Metadata.csv")
 ```
 
 Then much like in Step 1, we define the date format(s) used (for passing to [`lubridate`](https://lubridate.tidyverse.org/reference/lubridate-package.html)) (`d` = day as decimal, `m` = month as decimal, `y` = year without century - 2 digits, `Y` = year with century - 4 digits).
@@ -418,59 +439,63 @@ metadatetime_formats <- c("dmY HMS", "Ymd HMS") #specify date & time format
 metadatatimezone <- "Indian/Chagos" #specify timezone used for metadata
 ```
 
-Next we read in the metadata file (make sure to check the `read_` function you're using matches your ddata format!).
+:::
+
+Next we read in the metadata file (make sure to check the `read_` function you're using matches your data format!).
 
 ```{r}
 #| output: false
 df_metadata <- readr::read_csv(filepath_meta) # Read in metadata file
 names(df_metadata)
 ```
-
-Then we select necessary comments & coerce column names, making sure to provide four compulsory columns: **ID**  --- as defined in tracking data (individual **ID** or **TagID**), **deployment date** & **deployment time**. We can also provide optional columns depending on sensor type: e.g. colony, sex, age, central place (CP) Lat, CP Lon. Depending on whether you know the CP for each individual, you can use one of the two following approaches, and delete columns where appropriate. </br>
-**NB:** Different tags types sometimes require specific approaches for dealing with data collected outside of deployment period (e.g., before deployment or after retrieval). If data need to be filtered for one or both of these scenarios, we need to sort out these columns in the metadata, and if not relevant for the data, set column name to "NA".
-
-::: panel-tabset
-
 ##### Select metadata columns
+
+::: {.callout-warning icon="false"}
+#### 🧠 User input required
+
+Then we select necessary comments & coerce column names, making sure to provide four compulsory columns: **ID**  --- as defined in tracking data (individual **ID** or **TagID**), **deployment date** & **deployment time**. We can also provide optional columns depending on sensor type: e.g. colony, sex, age. You can add or delete other columns where appropriate.
 
 If you have multiple ID columns like TagID/DeployID, include them here (for example, if one individual was tracked over multiple deployments/years, or if one tag was re-deployed on multiple individuals). For more information and helpful code, see the [FAQ document](FAQ's.html) and [troubleshooting script](https://github.com/ExMove/ExMove/blob/main/R/Troubleshoot_Multiple%20ID%20columns.R).
 
+**Deployment and retrieval dates:** Different tags types sometimes require specific approaches for dealing with data collected outside of deployment period (e.g., before deployment or after retrieval). If data need to be filtered for one or both of these scenarios, we need to sort out these columns in the metadata, and if not relevant for the data, set the column name to "NA".
+
+**Central Place foragers:** If you are working with a central place forager (e.g., animals returning to a breeding location) and you have individual breeding location information in your metadata, here is a good place to add this info to the tracking data (e.g., breeding seabirds with known individual nest location, or seals returning to known haul-out location). We recommend adding these columns as: `CPY = Central place Y coordinate column` & `CPX = Central place X coordinate column`
 
 ```{r}
-df_metadataslim <- data.frame(ID = as.character(df_metadata$bird_id), # compulsory column
-                              TagID = as.character(df_metadata$Tag_ID),
-                              DeployID = as.character(df_metadata$Deploy_ID),
-                              DeployDate_local = df_metadata$capture_date, # compulsory column (set to NA if not relevant)
-                              DeployTime_local = df_metadata$capture_time, # compulsory column (set to NA if not relevant)
-                              RetrieveDate_local = NA, # compulsory column (set to NA if not relevant)
-                              RetrieveTime_local = NA, # compulsory column (set to NA if not relevant)
-                              DeployLat = df_metadata$lat,
-                              DeployLon = df_metadata$long,
+df_metadataslim <- data.frame(ID = as.character(df_metadata$BirdID), # compulsory column
+                              TagID = as.character(df_metadata$TagID),
+                              DeployID = as.character(df_metadata$DeployID),
+                              DeployDate_local = df_metadata$DeploymentDate, # compulsory column (make NA if irrelevant)
+                              DeployTime_local = df_metadata$DeploymentTime, # compulsory column (make NA if irrelevant)
+                              RetrieveDate_local = df_metadata$RetrievalDate, # compulsory column (make NA if irrelevant)
+                              RetrieveTime_local = df_metadata$RetrievalTime, # compulsory column (make NA if irrelevant)
+                              CPY = df_metadata$NestLat,
+                              CPX = df_metadata$NestLong,
                               Species = "RFB",
-                              Age = df_metadata$age)
+                              Population = "Population",
+                              Age = df_metadata$Age,
+                              BreedStage = df_metadata$BreedingStage)
 ```
 
-##### Option: Individual CP unknown
+::: {.callout-note collapse="true"}
 
-If central place for each individual is not known, you can add population-level central places here by first creating a custom dataframe of population CPs:
+## Option: select alternative columns
+
+For the example dataset RFB_IMM (immature red-footed boobies), we can use the following:
 ```{r}
 #| eval: false
-## ** Option ** ##
-df_PopCPs <- tribble(
-  ~Population,  ~CPLat,    ~CPLon,
-  "DG",         -7.24,     72.43,
-  "NI",         -5.68,     71.24
-  )
+df_metadataslim <- data.frame(ID = as.character(df_metadata$bird_id), # compulsory column
+                               TagID = as.character(df_metadata$Tag_ID),
+                               DeployID = as.character(df_metadata$Deploy_ID),
+                               DeployDate_local = df_metadata$capture_date, # compulsory column (set to NA if irrelevant)
+                               DeployTime_local = df_metadata$capture_time, # compulsory column (set to NA if irrelevant)
+                               RetrieveDate_local = NA, # compulsory column (set to NA if irrelevant)
+                               RetrieveTime_local = NA, # compulsory column (set to NA if irrelevant)
+                               DeployY = df_metadata$lat,
+                               DeployX = df_metadata$long,
+                               Species = "RFB",
+                               Age = df_metadata$age)
 ```
-
-Then we can merge `df_metadataslim` and `df_PopCPs.` The `Population` column  must be present in both dataframes (this codes uses the `%<>%` pipe, so will overwrite `CPLat` and `CPLon` if these are present in `df_metadataslim`).
-```{r}
-#| eval: false
-df_metadataslim  %<>%
-  select(matches(setdiff(names(df_metadataslim), c("CPLat", "CPLon")))) %>%
-  left_join(., df_PopCPs, by = "Population")
-```
-
 :::
 
 :::
@@ -479,15 +504,25 @@ Format all dates and times, combine them and specify timezone (NA's in deploymen
 
 ```{r}
 df_metadataslim <- df_metadataslim %>%
-  mutate(Deploydatetime = parse_date_time(paste(DeployDate_local, DeployTime_local),#create deploy datetime
-                                          order=metadatetime_formats, 
-                                          tz=metadatatimezone),
-         Retrievedatetime = parse_date_time(paste(RetrieveDate_local, RetrieveTime_local), #create retrieve datetime
+  mutate(Deploydatetime = 
+           lubridate::parse_date_time(
+             paste(DeployDate_local, DeployTime_local),# make deploy datetime
+                                          order = metadatetime_formats, 
+                                          tz = metadatatimezone),
+         Retrievedatetime = 
+           lubridate::parse_date_time(
+             paste(RetrieveDate_local, RetrieveTime_local), # make retrieve datetime
                                             order=metadatetime_formats,
-                                            tz=metadatatimezone)) %>%
-  select(-any_of(c("DeployDate_local","DeployTime_local", "RetrieveDate_local", "RetrieveTime_local"))) %>%
-  mutate(across(contains('datetime'), #return datetime as it would appear in a different tz
-                ~with_tz(., tzone=trackingdatatimezone)))
+                                            tz=metadatatimezone)
+         ) %>%
+  select(-any_of(c("DeployDate_local", 
+                   "DeployTime_local", 
+                   "RetrieveDate_local", 
+                   "RetrieveTime_local"))
+         ) %>%
+  mutate(across(contains('datetime'), # for chosen datetime column
+                ~with_tz(., tzone = trackingdatatimezone)) #format to different tz
+         )
 ```
 
 Here we'll create a dataframe of temporal extents of our data to use in absence of deploy/retrieve times (this is also useful for basic data checks and for writing up methods).
@@ -536,23 +571,26 @@ Define your own no/empty/erroneous data values in `Lat` and `Lon` columns (e.g. 
 No_data_vals <- c(0, -999)
 ```
 
-Define a vector of columns which can't have NAs (if there are NAs in one of these columns the problematic row will be removed).
+Define a vector of columns which can't have `NA`s (if there are `NA`s in one of these columns the problematic row will be removed).
 
 ```{r}
-na_cols <- c("Lat", "Lon", "DateTime", "ID") #column to check for na's
+na_cols <- c("X", "Y", "DateTime", "ID")
 ```
 
 :::
 
-Now we pipe the data through a series of functions to drop NAs in specified columns, filter out user-defined `no_data_values` in `Lat` `Lon` columns, remove duplicates, remove undeployed locations and filter out locations within temporal cut-off following deployment.
+Now we pipe the data through a series of functions to drop `NA`s in specified columns, filter out user-defined `no_data_values` in `Lat` `Lon` columns, remove duplicates, remove undeployed locations and filter out locations within temporal cut-off following deployment.
 
 ```{r}
 df_clean <- df_metamerged %>%
   drop_na(all_of(na_cols)) %>% 
-  filter(!Lat %in% No_data_vals & !Lon %in% No_data_vals) %>% # remove bad data values in Lat Lon columns
-  distinct(DateTime, ID, .keep_all = TRUE) %>% # this might be a problem for ACC data missing milliseconds, so beware if using it for this purpose!
-  filter(case_when(!is.na(Retrievedatetime) ~ Deploydatetime < DateTime & DateTime < Retrievedatetime, # keep deployment period, only
-                   .default = Deploydatetime < DateTime)) # if retrieve date is NA (i.e., tags submit via satellite), only filter by deploy date
+  filter(!X %in% No_data_vals & !Y %in% No_data_vals) %>% # remove bad Lat/Lon values
+  distinct(DateTime, ID, .keep_all = TRUE) %>% # NB: might be an issue for ACC without ms
+  filter(
+    case_when(!is.na(Retrievedatetime) # for all valid datetimes
+              ~ Deploydatetime < DateTime & # keep if datetime after deployment...
+                DateTime < Retrievedatetime, # ...and before retrieval
+              .default = Deploydatetime < DateTime)) # filter deployment only if retrieve date is NA (i.e., sat tags) 
 head(df_clean)
 ```
 
@@ -560,23 +598,23 @@ head(df_clean)
 
 ## Option: Filter by fix quality
 
-Argos fix quality can be used to filter the data set to remove locations with too much uncertainty. If you know the error classes that you want to retain in this dataset, you can run this filter below. </br>
+Argos fix quality can be used to filter the data set to remove locations with too much uncertainty. If you know the error classes that you want to retain in a dataset, you can run this filter below. </br>
 **NB:** If you want to do further exploration of location quality (e.g., from GPS PTT tags to compare locations with contemporaneous GPS locations), keep all location classes by skipping this step.
 
-In this code we define a vector of location classes to keep (typically, location classes 1, 2, and 3 are of sufficient certainty), and filter out everything else.
+In this example we define a vector of location classes to keep (typically, location classes 1, 2, and 3 are of sufficient certainty), and filter out everything else.
 
 ```{r}
+#| eval: false
 lc_keep <- c("1", "2", "3")
 
 df_clean <- df_clean %>%
-filter(lc %in% lc_keep) # filter data to only retain location classes in lc_keep
-head(df_clean)
+filter(lc %in% lc_keep) # filter data to retain only the best lc classes
 ```
 
 :::
 
 
-Finally we remove intermediate files/objects
+Finally we remove intermediate files/objects:
 
 ```{r}
 rm(list=ls()[!ls() %in% c("df_clean", "species_code")]) #specify objects to keep
@@ -584,7 +622,7 @@ rm(list=ls()[!ls() %in% c("df_clean", "species_code")]) #specify objects to keep
 
 ## 4. Processing {#processing}
 
-#### Some useful temporal and spatial calculations on the data
+#### Perform some useful temporal and spatial calculations on the data
 
 ::: {.callout-warning icon="false"}
 #### 🧠 User input required
@@ -595,56 +633,52 @@ First we need to specify the co-ordinate projection systems for the tracking dat
 tracking_crs <- 4326 # Only change if data are in a different coordinate system
 meta_crs <- 4326 # Only change if data are in a different coordinate system
 ```
-:::
 
 Next we transform coordinates of data, and perform spatial calculations. This requires spatial analysis, and so it is good practice to run all spatial analyses in a coordinate reference system that uses metres as a unit.
 
-As an example, we will use Spherical Mercator projection — *aka* "WGS" (crs = 3857). It's important to consider the location and scale of your data (e.g., equatorial/polar/local scale/global scale) when choosing a projection system. Other options include (but are not limited to) UTM, and Lambert azimuthal equal-area (LAEA).
+The default CRS for this workflow is the Spherical Mercator projection — *aka* "WGS" (`crs = 3857`), which is used by Google maps and works worldwide. However, WGS can over-estimate distance calculations in some cases, so it's important to consider the location and scale of your data (e.g., equatorial/polar/local scale/global scale) and choose a projection system to match. Other options include (but are not limited to) UTM, and Lambert azimuthal equal-area (LAEA).
+
+```{r}
+transform_crs <- 3857
+```
+:::
 
 Here we'll calculate bearings relative to first location.
 
 ```{r}
 df_diagnostic <-  df_clean %>%
   ungroup() %>% #need to ungroup to extract geometry of the whole dataset
-  mutate(geometry_GPS = st_transform( # assign geometry and transform to WGS for distance calculations
-      st_as_sf(., coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry,
-    geometry_first = st_transform(
-      st_as_sf(slice(., 1), coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry) %>%
+  mutate(geometry_GPS = st_transform( # transform X/Y coordinates
+            st_as_sf(., coords=c("X","Y"), crs = tracking_crs), #from original format
+            crs = transform_crs)$geometry # to the new transform_crs format
+         ) %>%
   group_by(ID) %>% #back to grouping by ID for calculations per individual
-  mutate(dist = st_distance(geometry_GPS, lag(geometry_GPS), by_element = T), # distance travelled from previous fix
-         difftime = difftime(DateTime, lag(DateTime), units="secs"),          # time passed since previous fix
-         netdisp = st_distance(geometry_GPS, geometry_first, by_element = T), # calculate distance between first location and current location
-         speed = as.numeric(dist)/as.numeric(difftime),                       # calculate speed (distance/time)
-         dLon = as.numeric(Lon)-lag(as.numeric(Lon)), #difference in longitude, relative to previous location
-         dLat = as.numeric(Lat)-lag(as.numeric(Lat)), #difference in longitude, relative to previous location
-         turnangle = atan2(dLon, dLat)*180/pi + (dLon < 0)*360) %>% #angle (in degrees) from previous to current location using formula theta = atan(y/x), where y = change along y axis & x = change along x axis
-  ungroup() %>% select(-c(geometry_GPS, dLon, dLat)) # ungroup and remove geometries
+  mutate(dist = st_distance(geometry_GPS, # distance travelled from previous fix, 
+                            lag(geometry_GPS), 
+                            by_element = T), # calculations are done by row
+         difftime = difftime(DateTime, lag(DateTime), # time passed since previous fix
+                             units = "secs"), # in seconds
+         netdisp = st_distance(geometry_GPS, # dist. between 1st and current location
+                               geometry_GPS[1], 
+                               by_element = F)[,1], # dense matrix w/ pairwise distances
+         speed = as.numeric(dist)/as.numeric(difftime), # calculate speed (distance/time)
+         dX = as.numeric(X)-lag(as.numeric(X)), #diff. in lon  relative to prev. location
+         dY = as.numeric(Y)-lag(as.numeric(Y)), #diff. in lat relative to prev. location
+         turnangle = atan2(dX, dY)*180/pi + (dX < 0)*360) %>% # angle from prev. to current location
+  ungroup() %>% 
+  select(-c(geometry_GPS, dX, dY)) # ungroup and remove excess geometries
 ```
 
-::: {.callout-note collapse="false"}
-
-## Option: CP data included
-
-If your data include a Central Place location, you can also run the following code to calculate bearings relative to CP
-
+Add latitude and longitude column — this can be useful for plotting and is a common coordinate system used in the shiny app
 ```{r}
-#| eval: false
-## ** Option ** ##
-df_diagnostic <-  df_diagnostic %>%
-  ungroup() %>% #need to ungroup to extract geometry of the whole dataset
-  mutate(geometry_GPS = st_transform( #assign geometry and transform to WGS for dist calcs
-    st_as_sf(., coords=c("Lon","Lat"), crs=tracking_crs), crs = 3857)$geometry,
-    geometry_CP = st_transform( #assign geometry and transform to WGS for dist calcs
-      st_as_sf(., coords=c("CPLon","CPLat"), crs=meta_crs), crs = 3857)$geometry) %>%
-  group_by(ID) %>% #back to grouping by ID for calculations per individual
-  mutate(CPdist = st_distance(geometry_GPS, geometry_CP, by_element = T), #calculate distance between central place and current location
-         dLon_CP = as.numeric(Lon)-CPLon, #difference in longitude between current location and central place
-         dLat_CP = as.numeric(Lat)-CPLat, #difference in longitude between current location and central place
-         CPbearing = atan2(dLon_CP, dLat_CP)*180/pi + (dLon_CP < 0)*360) %>% #bearing (in degrees) from central place to current location using formula theta = atan(y/x), where y = change along y axis from CP & x = change along x axis from CP
-  ungroup() %>% select(-c(geometry_GPS, geometry_CP, dLon, dLat, dLon_CP, dLat_CP)) #ungroup and remove geometries
+df_diagnostic <- st_coordinates(st_transform(st_as_sf(df_diagnostic, 
+                                                      coords = c("X","Y"), 
+                                                      crs=tracking_crs), 
+                                             crs = 4326)) %>% 
+                  as.data.frame() %>% 
+                  rename("Lon" = "X", "Lat" = "Y") %>% 
+                  cbind(df_diagnostic, .)
 ```
-
-:::
 
 ## 5. Save for Shiny
 
@@ -731,7 +765,7 @@ filter_speed <- 20
 Next we define a net displacement (distance from first point) threshold and specify units. Any points further away from the first tracking point will be removed (see commented code for how to retain all points):
 
 ``` {r}
-filter_netdisp_dist <- 200
+filter_netdisp_dist <- 300
 filter_netdist_units <- "km" # e.g., "m", "km"
 
 #If you want to retain points no matter the net displacement value, use these values instead:
@@ -831,7 +865,9 @@ df_summary_pop
 
 Remove intermediate files/objects by specifying which objects to keep:
 ```{r}
-rm(list=ls()[!ls() %in% c("df_filtered", "df_summary_ind", "df_summary_pop", "species_code")]) #specify objects to keep
+rm(list=ls()[!ls() %in% c("df_filtered",
+                          "df_summary_ind", "df_summary_pop", 
+                          "species_code")]) 
 ```
 
 
@@ -874,11 +910,13 @@ write_csv(df_summary_pop, file = here(filepath_summary_out, paste0(filename_summ
 
 Lastly we remove intermediate files/objects
 ```{r}
-rm(list=ls()[!ls() %in% c("df_filtered", "df_summary_ind", "df_summary_pop", "species_code")]) #specify objects to keep
+rm(list=ls()[!ls() %in% c("df_filtered", 
+                          "df_summary_ind", "df_summary_pop", 
+                          "species_code")])
 ```
 
 
-## 9. Visualisation I
+## 9. Visualisation
 
 ::: {.callout-warning icon="false"}
 #### User input required
@@ -943,8 +981,8 @@ df_plotting <- df_filtered %>%
 Create a map of all points. Set the plot limits as the max and min lat/longs as the tracking data
 
 First set up a basemap to plot over:
--   Use rnatural earth low res countries basemap
--   co-ordinates in lat/long to match other spatial data
+-   Use `rnaturalearth` low resolution countries basemap
+-   co-ordinates in lat/lon to match other spatial data
 
 ```{r}
 countries <- ne_countries(scale = "medium", returnclass = "sf")
@@ -1022,15 +1060,21 @@ Plot a map of individual locations, colouring points by speed, and faceting by I
 ```{r}
 map_individuals <- map_base + 
   # add GPS points and paths between them
-  geom_point(data = df_plotting, aes(x = Lon, y = Lat, col = speed), 
-             alpha = 0.8, size = 0.5 ) +
-  geom_path(data = df_plotting, aes(x = Lon, y = Lat, col = speed), 
-            alpha = 0.8, size = 0.5 ) +
+  geom_point(data = df_plotting, 
+             aes(x = Lon, y = Lat, col = speed), 
+             alpha = 0.8, size = 0.5 
+             ) +
+  geom_path(data = df_plotting, 
+            aes(x = Lon, y = Lat, col = speed), 
+            alpha = 0.8, size = 0.5 
+            ) +
   # colour birds using scale_colour_gradient2
-  scale_colour_gradient2(name = "Speed", low = "blue", mid = "white", high = "red", 
-                         midpoint = (max(df_plotting$speed,na.rm=TRUE)/2)) + # `midpoint` argument ensures an even transition of color across speed value
-  # facet for individual
-  facet_wrap(~ ID, ncol = round(sqrt(n_distinct(df_plotting$ID))))
+  scale_colour_gradient2(name = "Speed", 
+                         low = "blue", mid = "white", high = "red", 
+                         midpoint = (max(df_plotting$speed,na.rm=TRUE)/2) # use `midpoint` for nice colour transition
+                         ) + 
+  facet_wrap(~ ID, # facet for individual
+             ncol = round(sqrt(n_distinct(df_plotting$ID))))  
 map_individuals
 ```
 
@@ -1044,14 +1088,21 @@ In previous plots, we've split the population into individual facets. This works
 ## ** Option ** ##
 ## save plot as object to later extract number of pages
 ## e.g., with 2 per page:
-map_individuals <- map_base + 
-  # add GPS points and paths between them
-  geom_point(data = df_plotting, aes(x = Lon, y = Lat, col = speed), alpha = 0.8, size = 0.5 ) +
-  geom_path(data = df_plotting, aes(x = Lon, y = Lat, col = speed), alpha = 0.8, size = 0.5 ) +
-  # colour birds using scale_colour_gradient2
-  scale_colour_gradient2(name = "Speed", low = "blue", mid = "white", high = "red", midpoint = (max(df_plotting$speed,na.rm=TRUE)/2)) +
-  ##facet for individual
-  facet_wrap_paginate(~ID, ncol = 2, nrow= 1, page = 1)
+map_individuals <- map_base +
+  geom_point(data = df_plotting, # add GPS points
+             aes(x = Lon, y = Lat, col = speed), 
+             alpha = 0.8, size = 0.5 
+             ) +
+  geom_path(data = df_plotting, #and paths between them
+            aes(x = Lon, y = Lat, col = speed), 
+            alpha = 0.8, size = 0.5 
+            ) +
+  scale_colour_gradient2(name = "Speed", # colour speed w/ scale_colour_gradient2
+                         low = "blue", mid = "white", high = "red", 
+                         midpoint = (max(df_plotting$speed,na.rm=TRUE)/2)
+                         ) +
+  facet_wrap_paginate(~ID, # facet for individual
+                      ncol = 2, nrow= 1, page = 1)
 ```
 
 How many pages of plots?
@@ -1091,16 +1142,16 @@ Create a time series plot of speed, faceted for each individual.
 
 ```{r}
 speed_time_plot <- df_plotting %>% #speed over time
-  ggplot(data=., aes(x=days_elapsed, y=speed, group=ID)) +
-  # add line of speed over time
-  geom_line() + 
-  # add axis labels
-  xlab("time elapsed (days)") + ylab("speed (m/s)") +
-  # facet by individual
-  facet_wrap(~ID, nrow= round(sqrt(n_distinct(df_plotting$ID)))) +
-  # set plotting theme
-  theme(axis.text=element_text(colour="black")) +
-  theme_light()
+  ggplot(data = ., 
+         aes(x = days_elapsed, y = speed, group = ID)
+         ) +
+  geom_line() +   # add line of speed over time
+  xlab("time elapsed (days)") + 
+  ylab("speed (m/s)") +
+  facet_wrap(~ID, # facet by individual
+             nrow = round(sqrt(n_distinct(df_plotting$ID)))) +
+  theme_light() + # set plotting theme
+  theme(axis.text = element_text(colour="black")) #adjust theme
 speed_time_plot
 ```
 
@@ -1126,16 +1177,15 @@ Create a histogram of point to point speeds (can adjust binwidth and x limits ma
 
 ```{r}
 speed_hist <- df_plotting %>% 
-  ggplot(data=., aes(speed)) +
-  geom_histogram(binwidth=0.1, alpha=0.7) + # can adjust binwidth to suite your needs
-  geom_density(aes(y =0.1*..count..)) +
-  # add plot labels
-  xlab("speed (m/s)") + ylab("count") +
-  # facet by individual
-  facet_wrap(~ID, nrow= round(sqrt(n_distinct(df_plotting$ID)))) +
-  # set plotting theme
-  theme(axis.text=element_text(colour="black"))+
-  theme_light()
+  ggplot(data = ., aes(speed)) +
+  geom_histogram(binwidth = 0.1, alpha=0.7) + # can adjust binwidth to suite your needs
+  geom_density(aes(y = 0.1*..count..)) +
+  xlab("speed (m/s)") + 
+  ylab("count") +
+  facet_wrap(~ID, # facet by individual
+             nrow = round(sqrt(n_distinct(df_plotting$ID)))) +
+  theme_light() + # set plotting theme
+  theme(axis.text = element_text(colour="black")) #adjust theme
 speed_hist
 ```
 
@@ -1155,15 +1205,16 @@ Create a time series plot of step lengths (faceted for each individual)
 
 ```{r}
 step_time_plot <- df_plotting %>% #step length over time
-  ggplot(data=., aes(x=days_elapsed, y=as.numeric(netdisp), group=ID)) +
+  ggplot(data = ., 
+         aes(x = days_elapsed, y = as.numeric(netdisp), group = ID)) +
   geom_line() +
   # add plot labels
   xlab("time elapsed (days)") + ylab("Distance from first fix (m)") +
-  # facet by individual
-  facet_wrap(~ID, nrow= round(sqrt(n_distinct(df_plotting$ID)))) +
-  # set plotting theme
-  theme(axis.text=element_text(colour="black")) +
-  theme_light()
+
+  facet_wrap(~ID, # facet by individual
+             nrow= round(sqrt(n_distinct(df_plotting$ID)))) +
+  theme_light() + # set plotting theme
+  theme(axis.text = element_text(colour="black")) #adjust theme
 step_time_plot
 ```
 
@@ -1184,15 +1235,15 @@ Create a histogram of step lengths (can adjust binwidth and x limits manually)
 ```{r}
 #| eval: false
 step_hist <- df_plotting %>% #step histogram
-  ggplot(data=., aes(as.numeric(dist))) +
-  geom_histogram(binwidth=1, alpha=0.7) + # can adjust binwidth to suite your needs
-  geom_density(aes(y =1*..count..)) +
-  # add plot labels
-  xlab("step length (m)") + ylab("count") +
-  # facet by individual
-  facet_wrap(~ID, nrow= round(sqrt(n_distinct(df_plotting$ID))))+
-  # set plotting theme
-  theme_light()
+  ggplot(data = ., 
+         aes(as.numeric(dist))) +
+  geom_histogram(binwidth = 1, alpha = 0.7) + # can adjust binwidth to suite your needs
+  geom_density(aes(y = 1*..count..)) +
+  xlab("step length (m)") + 
+  ylab("count") +
+  facet_wrap(~ID, # facet by individual
+             nrow = round(sqrt(n_distinct(df_plotting$ID))))+
+  theme_light() # set plotting theme
 ```
 
 Save plot for further use
