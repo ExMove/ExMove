@@ -4,7 +4,8 @@
 #'  - This code can be used to sub-sample or interpolate movement data
 #'  - Load libraries
 #'  - Read in data
-#'  - Option A - Sub-sample movement data
+#'  - Summarise/visualise sampling interval
+#'  - Sub-sample movement data
 #'  - Save resampled data file
 #'  DEPENDENCIES:
 #'  - Requires tidyverse to be installed
@@ -22,6 +23,7 @@ library(lubridate) #installed as part of the tidyverse but needs to be loaded ma
 library(here) #for reproducible filepaths
 
 
+
 #--------------------------#
 ##0. Pre-flight checks  ####
 #--------------------------#
@@ -29,6 +31,8 @@ library(here) #for reproducible filepaths
 ## Data must contain individual ID, timestamp, and coordinates
 ## Here, we work on data formatted and filtered in the main processing workflow
 ## The data frame we read in is df_filtered produced in step 4
+
+
 
 #---------------------------#
 ##1. Read in data files  ####
@@ -38,19 +42,89 @@ library(here) #for reproducible filepaths
 ##USER INPUT START##
 #--------------------#
 
+## specify file path to data set *_filtered.csv
 filepath <- "DataOutputs/WorkingDataFrames/RFB_filtered.csv"
 
 #-----------------#
 ##USER INPUT END##
 #-----------------#
 
+## read in file
 df_diagnostic <- read_csv(filepath)
 
 
-#---------------------#
-##2. Sub-sampling  ####
-#---------------------#
 
+#------------------------------------------------------------#
+##2. Summary/Visualization of Current Sampling Intervals  ####
+#------------------------------------------------------------#
+
+#--------------------#
+##USER INPUT START##
+#--------------------#
+
+## select the time unit to summaries and visualise the sampling interval
+## Other options include "secs", "hours", "days", "weeks"
+Time_unit <- "mins"
+
+#-----------------#
+##USER INPUT END##
+#-----------------#
+
+## Re-calcualte the time differences between consecutive locations
+## These may have changes since the first calculation due to filtering
+df_diagnostic <-  df_diagnostic %>%
+  ungroup() %>% # make sure data set has no existing grouping
+  group_by(ID) %>% # grouping by ID for calculations per individual
+  mutate(difftime = difftime(DateTime, lag(DateTime), units= Time_unit)) %>%  # time passed since previous fix
+  ungroup() 
+
+
+## calcualte mean sampling interval for all data
+MeanInt <- round(mean((df_diagnostic$difftime), na.rm=T), digits = 1)
+MeanInt
+
+## calculate sampling interval standard deviation for all data
+SDInt <- round(sd((df_diagnostic$difftime), na.rm=T), digits = 1)
+SDInt
+
+## calcualte the max and min sampling interval for all data
+MinInt <- round(min((df_diagnostic$difftime), na.rm=T) ,digits = 1)
+MinInt
+MaxInt <- round(max((df_diagnostic$difftime), na.rm=T) ,digits = 1)
+MaxInt
+
+
+## Summaries sampling intervals per individual
+dfSamp_summary <- df_diagnostic %>% 
+  ungroup() %>% 
+  group_by(ID) %>%  # grouping by ID for calculations per individual
+  summarise(NoFixesRAW = n(), # calcualte the number of locations for each level of the grouping variable
+            Sampling_IntervalMEAN = round(mean((difftime), na.rm=T), digits = 1),   # mean sampling interval
+            Sampling_IntervalSD = round(sd((difftime), na.rm=T), digits = 1),       # standard deviation of the sampling interval
+            Sampling_IntervalMIN = round(min((difftime), na.rm=T), digits = 1),     # minimum sampling interval
+            Sampling_IntervalMAX = round(max((difftime), na.rm=T), digits = 1)) %>% # maximum sampling interval
+  ungroup()
+
+dfSamp_summary # view individual-level summary of sampling intervals
+
+
+## plot histogram of the sampling sampling intervals
+## with a dashed line at the mena smapling interval
+Samphist <- ggplot(df_diagnostic, aes(x = as.numeric((difftime), na.rm=T))) +
+  geom_histogram(bins = 50) + # how many bins the histogram should have
+  geom_vline(xintercept = MeanInt, linetype = "dashed") + # the dashed line at the mean sampling interval
+  scale_x_continuous(n.breaks = 15, limits = c(0, max(as.numeric(df_diagnostic$difftime, na.rm=T))))+ # number of x axis breaks to have
+  theme_light() + # change theme
+  theme(axis.title = element_text(size = 16), axis.text = element_text(size =12)) + # change axis text formatting
+  xlab(paste0("Interval (", Time_unit, ")")) + ylab("Frequency") # add axis labels
+
+Samphist
+
+
+
+#---------------------#
+##3. Sub-sampling  ####
+#---------------------#
 
 ## might want to sub-sample the tracking data to a regular time interval
 ## often required to compare movement metrics from tags with different sampling intervals
@@ -63,11 +137,11 @@ df_diagnostic <- read_csv(filepath)
 
 ## set time unit for sub-sampling
 
-subsampling_unit <- "minutes"
+subsampling_unit <- "mins"
 
 ## set the resolution to subsample to
 
-subsampling_res <- 20
+subsampling_res <- 10
 
 #------------------#
 ## USER INPUT END ##
@@ -86,9 +160,68 @@ df_subsampled <- df_diagnostic %>%
   select(-c(accuracy,subsample)) #remove excess columns 
 
 
+
+#--------------------------------------------------------------#
+##4. Summary/Visualization of Resampled Sampling Intervals  ####
+#--------------------------------------------------------------#
+
+## Re-calcualte the time differences between consecutive locations after sub sampling
+df_subsampled <-  df_subsampled %>%
+  ungroup() %>% # make sure data set has no existing grouping
+  group_by(ID) %>% # grouping by ID for calculations per individual
+  mutate(difftime = difftime(DateTime, lag(DateTime), units= Time_unit)) %>%  # time passed since previous fix
+  ungroup() 
+
+
+## calcualte mean sampling interval for all data
+MeanSubInt <- round(mean((df_subsampled$difftime), na.rm=T), digits = 1)
+MeanSubInt
+
+## calculate sampling interval standard deviation for all data
+SDSubInt <- round(sd((df_subsampled$difftime), na.rm=T), digits = 1)
+SDSubInt
+
+## calcualte the max and min sampling interval for all data
+MinSubInt <- round(min((df_subsampled$difftime), na.rm=T) ,digits = 1)
+MinSubInt
+MaxSubInt <- round(max((df_subsampled$difftime), na.rm=T) ,digits = 1)
+MaxSubInt
+
+
+## Summaries sampling intervals per individual
+dfSubSamp_summary <- df_subsampled %>% 
+  ungroup() %>% 
+  group_by(ID) %>%  # grouping by ID for calculations per individual
+  summarise(NoFixesRAW = n(), # calcualte the number of locations for each level of the grouping variable
+            Sampling_IntervalMEAN = round(mean((difftime), na.rm=T), digits = 1),   # mean sampling interval
+            Sampling_IntervalSD = round(sd((difftime), na.rm=T), digits = 1),       # standard deviation of the sampling interval
+            Sampling_IntervalMIN = round(min((difftime), na.rm=T), digits = 1),     # minimum sampling interval
+            Sampling_IntervalMAX = round(max((difftime), na.rm=T), digits = 1)) %>% # maximum sampling interval
+  ungroup()
+
+dfSubSamp_summary # view individual-level summary of sampling intervals
+
+
+## plot histogram of the sampling sampling intervals for sub sampled data
+## with a dashed line at the mean sampling interval
+SubSamphist <- ggplot(df_subsampled, aes(x = as.numeric((difftime), na.rm=T))) +
+  geom_histogram(bins = 50) + # how many bins the histogram should have
+  geom_vline(xintercept = MeanSubInt, linetype = "dashed") + # the dashed line at the mean sampling interval
+  scale_x_continuous(n.breaks = 15, limits = c(0, max(as.numeric(df_subsampled$difftime, na.rm=T))))+ # number of x axis breaks to have
+  theme_light() + # change theme
+  theme(axis.title = element_text(size = 16), axis.text = element_text(size =12)) + # change axis text formatting
+  xlab(paste0("Interval (", Time_unit, ")")) + ylab("Frequency") # add axis labels
+
+SubSamphist
+
+
+
 #-----------------------------------#
-##3. Save reprocessed data frame ####
+##5. Save reprocessed data frame ####
 #-----------------------------------#
+
+## NOTE: If you are not happy with the subsampling then go back and try different intervals before 
+##       saving the the data in this step
 
 #--------------------#
 ## USER INPUT START ##

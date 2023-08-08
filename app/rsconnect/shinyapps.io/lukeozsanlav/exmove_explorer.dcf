@@ -5,7 +5,7 @@ account: lukeozsanlav
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 8384369
-bundleId: 6875567
+bundleId: 7004201
 url: https://lukeozsanlav.shinyapps.io/exmove_explorer/
-when: 1677088490.15095
-lastSyncTime: 1677088490.15097
+when: 1679681030.30503
+lastSyncTime: 1679681030.30507

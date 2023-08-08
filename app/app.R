@@ -1901,7 +1901,7 @@ server <- function(input, output, session) {
     
   })
   
-  ## Create an Info box with the the number of GPS locations
+  ## Create an Info box with the thestandard deviation of sampling Interval
   output$SDSampInt <- renderValueBox({
     
     ## Display message to read in data if no data has been chosen

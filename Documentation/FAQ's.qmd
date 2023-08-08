@@ -5,6 +5,7 @@ format:
     page-layout: full
 toc: true #table of contents
 number-sections: true
+number-depth: 2
 ---
 
 ```{r}
@@ -16,6 +17,7 @@ library(lubridate)
 ## Introduction {.unnumbered .unnumbered}
 
 Below is a list of common issues/errors that you might come across when using the workflow we provide. It's not exhaustive, but hopefully helpful for solving problems that are likely to occur if you are analysing your own data.
+
 
 ## Getting the workflow up and running
 
@@ -31,13 +33,13 @@ When we open a `.Rproj` file (which should be the starting point for this workfl
 
 By combining Rstudio projects with the [`here`](https://here.r-lib.org/) package, we can create relative filepaths that work across machines, so you won't have to edit a complicated filepath to get the code to run (for more info see the ['Getting started'](https://here.r-lib.org/articles/here.html) section of the `here` documentation).
 
+
 ## Reporting in a paper
 
 ### How to report usage of this workflow in a paper
 If you have used this workflow and you wish to report this in a scientific publication then we provide the text below as a suggestion as to how the user might do so.
 
 "Animal tracking data in this study was cleaned following the key principles of clean data in Langley *et al.* (2023). Duplicated and erroneous data points were removed, a maximum speed filter of **XX**m/s applied and data **YY**hours after initial deployment removed"
-
 
 
 ## Data problems
@@ -94,7 +96,7 @@ More information on these concepts can be found in the sf documentation (see: [T
 message("## although coordinates are longitude/latitude, st_intersects assumes that they are planar")
 ```
 
-Miscellaneous sf questions that could either be addressed here, or just pointed to the [sf misc page](https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about)
+This warning message relates to the way that `sf` deals with geographic coordinates and how it assumes they are projected. For some types of geometric operations, it is very important to be aware of the current projection (see [this r-spatial post])(https://r-spatial.org/r/2020/06/17/s2.html) for a nice explanation of the issue). For more general information on `sf` error messages, see the [sf misc page](https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about).
 
 
 ## Timezones

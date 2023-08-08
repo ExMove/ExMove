@@ -3,7 +3,7 @@
 #' CONTENTS: 
 #'  - Load libraries
 #'  - Read in data
-#'  - Option A = define trips using distance threshold
+#'  - Option A = define trips using distance threshold from known CP location
 #'  - Option B = define trips using shape file around CP
 #'  - Visualise trip classification
 #'  - Use time threshold to define foraging trips, only
@@ -12,7 +12,7 @@
 #'  - Save data
 #'  DEPENDENCIES:
 #'  - Requires tidyverse to be installed
-#'  - Source data: df_diagnostic from data processing scripts
+#'  - Source data: df_filtered from data processing scripts
 #' AUTHORS: Alice Trevail, Stephen Lang, Luke Ozsanlav-Harris, Liam Langley
 #' #----------------------------------------------------------------------- #
 
@@ -33,11 +33,36 @@ library(data.table)
 #--------------------------#
 
 ## Data must contain individual ID, timestamp, and coordinates
-## Here, we work on data formatted in the main workflow (df_diagnostic)
-## Coordinates for the central place = CPLon & CPLat
-## Distance to colony in metres = CPdist (calculated in optional script in section 4 in main workflow)
+## Here, we work on data formatted in the main workflow (df_filtered or df_filtered)
+## If data include multiple populations, "Population" must be included as a column
 
-## Acronym definition: CP = central place
+## Acronym definition: 
+## CP = central place
+## CPLon & CPLat = Coordinates for the central place
+## CPdist = Distance to colony in metres
+
+
+
+#----------------------------------------#
+##0. How to define the central place  ####
+#----------------------------------------#
+
+## In this code, there are different options depending on:
+## (a) your knowledge of the central place location, and
+## (b) where the central place location data are stored
+
+## If your central place coordinates are known for each population or individual,
+## use Option A = define trips using distance threshold from known CP location
+
+## Within Option A, there are two ways to define the coordinates of the CP
+## A.1. From within the metadata (e.g., individual / population CP)
+##      You may have already added these to the data in the main workflow
+## A.2. From known population CP coordinates, not stored in the metadata file
+##      We'll add these by creating a new CP location dataframe, and merging it with the tracking data
+
+## If the central place is defined using a shape file delineating the boundaries of the CP,
+## use Option B = define trips using shape file around CP
+
 
 #---------------------------#
 ##1. Read in data files  ####
@@ -56,22 +81,132 @@ filepath <- here("DataOutputs","WorkingDataFrames","RFB_filtered.csv")
 ##USER INPUT END##
 #-----------------#
 
-df_diagnostic <- read_csv(filepath)
+df_filtered <- read_csv(filepath)
+names(df_filtered)
 
+#-------------------------------------------------------------------------------------------#
+## 2. Option A = define trips using distance threshold from known central place location ####
+#-------------------------------------------------------------------------------------------#
 
-
-#----------------------------------------------------------#
-## 2. Option A = define trips using distance threshold  ####
-#----------------------------------------------------------#
-
-## Here, we define trips using a threshold of distance from the CP
-## This code will work based on distance calculated in the main workflow
-## This works with data from multiple populations with different CPs if specified in main workflow
+## Here, we define trips using a threshold of distance from known CP coordinates
+## For this, we need to know coordinates of central place for each population or individual
+## This works with data from multiple populations/individual with different CPs
 ## skip this step if using Option B
+
+## First, we'll add the CP locations to the tracking data
+## If your data frame already containes columns CPLon and CPLat, 
+## move ahead to defining distance threshold
+
+#----------------------------------------------#
+## 2. Option A.1 = CP Locations in metadata ####
+#----------------------------------------------#
+
+#--------------------#
+## USER INPUT START ##
+#--------------------#
+
+## set file path to metadata
+filepath_meta <- here("Data","RFB_Metadata.csv")
+
+#------------------#
+## USER INPUT END ##
+#------------------#
+
+## Read in metadata file
+df_metadata <- readr::read_csv(filepath_meta)
+names(df_metadata)
+
+#--------------------#
+## USER INPUT START ##
+#--------------------#
+
+## Define CP columns & coerce column names:
+## CPLat = Central place latitude
+## CPLon = Central place longitude
+
+df_CPlocs_optionA1 <- data.frame(ID = df_metadata$BirdID,
+                                 CPLat = df_metadata$NestLat,
+                                 CPLon = df_metadata$NestLong)
+
+#------------------#
+## USER INPUT END ##
+#------------------#
+
+#--------------------------------------------------#
+## 2. Option A.2 = CP Locations not in metadata ####
+#--------------------------------------------------#
+
+#--------------------#
+## USER INPUT START ##
+#--------------------#
+
+# create a dataframe of population CPs.
+df_CPlocs_optionA2 <- tribble(
+  ~Population,  ~CPLat,    ~CPLon,
+  "DG",         -7.24,     72.43,
+  "NI",         -5.68,     71.24
+)
+
+#------------------#
+## USER INPUT END ##
+#------------------#
+
+#------------------------------------------------------------#
+## 2. Options A.1 & A2 = merge CP locs with tracking data ####
+#------------------------------------------------------------#
+
+
+#--------------------#
+## USER INPUT START ##
+#--------------------#
+
+# Specify the column used to merge CP locations with the tracking data
+# i.e., ID / Population
+ID_type <- "ID"
+
+# Specify which CPlocs dataframe to use = df_CPlocs_optionA1 or df_CPlocs_optionA2
+df_CPlocs <- df_CPlocs_optionA1
+
+#------------------#
+## USER INPUT END ##
+#------------------#
+
+# This will overwrite "CPLat" and "CPLon" if already present in df_filtered
+df_filtered_CPlocs  <- df_filtered %>%
+  select(!any_of(c("CPLat", "CPLon", "CPdist"))) %>%
+  left_join(., df_CPlocs, by=ID_type) 
+
+
+#------------------------------------------------------------------------------------------#
+## 2. Options A.1 & A2 = calulate CPdist and define CP attendance by distance threshold ####
+#------------------------------------------------------------------------------------------#
+
 
 #--------------------#
 ##USER INPUT START##
 #--------------------#
+
+## Specify co-ordinate projection systems for the tracking data and CP locations
+## Default here is lon/lat for both tracking data & metadata, for which the EPSG code is 4326. 
+## Look online for alternative EPSG codes, e.g., https://inbo.github.io/tutorials/tutorials/spatial_crs_coding/
+
+tracking_crs <- 4326 # Only change if data are in a different coordinate system
+CP_crs <- 4326 # Only change if data are in a different coordinate system
+
+## Specify metric co-ordinate projection system to transform the data into for distance calculations with units in metres
+## WE STRONGLY RECCOMEND CHANGING THAT YOU CHANGE THIS FOR YOUR STUDY SYSTEM/LOCATION
+## Here, we use Spherical Mercator projection — aka 'WGS' (crs = 3857), used by google maps
+## this can be used worldwide, and so we chose it to ensure that this workflow will work on any data
+## However, distance calculations can be over-estimated
+## Consider the location and scale of your data (e.g., equatorial/polar/local scale/global scale) when choosing a projection system
+## Other options include (but are not limited to) UTM, Lambert azimuthal equal-area (LAEA)
+## For information about choosing a projection system, see the FAQ doc in documentation folder
+
+transform_crs <- 3857
+
+# define distance threshold for defining CP attendance
+# locations < threshold_dist will be defined as 'at CP'
+# locations > threshold_dist will be defined as a trip
 
 threshold_dist <- 1000 #distance in meters
 
@@ -80,9 +215,23 @@ threshold_dist <- 1000 #distance in meters
 ##USER INPUT END##
 #-----------------#
 
-## Define points at the CP using the distance threshold and CPdist column
 
-df_CP <- df_diagnostic %>%
+df_filtered_CPlocs <-  df_filtered_CPlocs %>%
+  ungroup() %>% #need to ungroup to extract geometry of the whole dataset
+  mutate(geometry_GPS = st_transform( #assign geometry and transform to WGS for dist calcs
+    st_as_sf(., coords=c("Lon","Lat"), crs=tracking_crs), crs = transform_crs)$geometry,
+    geometry_CP = st_transform( #assign geometry and transform to WGS for dist calcs
+      st_as_sf(., coords=c("CPLon","CPLat"), crs=CP_crs), crs = transform_crs)$geometry) %>%
+  group_by(ID) %>% #back to grouping by ID for calculations per individual
+  mutate(CPdist = st_distance(geometry_GPS, geometry_CP, by_element = T), #calculate distance between central place and current location
+         dLon_CP = as.numeric(Lon)-CPLon, #difference in longitude between current location and central place
+         dLat_CP = as.numeric(Lat)-CPLat, #difference in longitude between current location and central place
+         CPbearing = atan2(dLon_CP, dLat_CP)*180/pi + (dLon_CP < 0)*360) %>% #bearing (in degrees) from central place to current location using formula theta = atan(y/x), where y = change along y axis from CP & x = change along x axis from CP
+  ungroup() %>% select(-c(geometry_GPS, geometry_CP, dLon_CP, dLat_CP)) #ungroup and remove geometries
+
+
+## Define points at the CP using the distance threshold and CPdist column
+df_CP <- df_filtered %>%
   mutate(atCP = ifelse(CPdist < threshold_dist, "Yes", "No")) # using distance threshold
 
 
@@ -120,7 +269,7 @@ CP_shape <- st_read(dsn = shapefilepath, crs=4326) %>%
   mutate(CP = "CP") # add a common column name for later indexing
 
 ## Define points at the CP if they intersect with the shape file
-df_CP <- df_diagnostic %>% 
+df_CP <- df_filtered %>% 
   st_as_sf(., coords=c("Lon","Lat"), crs = 4326, remove=FALSE) %>% 
   st_transform(crs = 3857) %>%
   st_join(., CP_shape, join = st_intersects) %>%
@@ -457,7 +606,7 @@ map_trips <- map_base +
   geom_point(data = df_trips, aes(x = Lon, y = Lat, col = as.factor(trip_num)), alpha = 0.8, size = 0.5 ) +
   geom_path(data = df_trips, aes(x = Lon, y = Lat, col = as.factor(trip_num)), alpha = 0.8, size = 0.5 ) +
   ##facet for individual
-  facet_wrap(~ ID, ncol = ceiling(sqrt(n_distinct(df_diagnostic$ID)))) +
+  facet_wrap(~ ID, ncol = ceiling(sqrt(n_distinct(df_filtered$ID)))) +
   labs(col = "Trip Number")
 map_trips
 
@@ -515,7 +664,7 @@ ggsave(plot = plot_tripmetrics, filename = paste0(species_code, "_pop_tripmetric
 ## This means that we have removed all points from the CP, and all points from non-foraging trips
 ## This goes against natural instincts of many of us to hoard data - what if we need it after all?
 ## However, there are many good reasons to work this way, e.g.;
-#'  - we still have non-foraging points in our original raw data files, and intermediate df_diagnostic file
+#'  - we still have non-foraging points in our original raw data files, and intermediate df_filtered file
 #'  - by keeping well annotated workflows, we can quickly and easily re-run these processing steps and 'restore' non-foraging data
 #'  - we can reduce the file size of data
 #'  - therefore, reducing back up requirements
@@ -523,9 +672,9 @@ ggsave(plot = plot_tripmetrics, filename = paste0(species_code, "_pop_tripmetric
 #'  - we have kept our ecologically meaningful foraging data
 #'  - this has kept the data processing above more simple, with less conditional formatting
 ## Depending on your research question, you might want to keep all original points
-## If so, run the following code to join trip information to df_diagnostic, and modify the code below to save this file, instead:
+## If so, run the following code to join trip information to df_filtered, and modify the code below to save this file, instead:
 
-# df_diagnostic_withTripIDs <- df_diagnostic %>%
+# df_filtered_withTripIDs <- df_filtered %>%
 #   left_join(., df_trips)
 
 ## Similarly, we will save the trip metrics separately for now to keep the file size small
