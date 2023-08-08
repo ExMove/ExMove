@@ -96,7 +96,7 @@ More information on these concepts can be found in the sf documentation (see: [T
 message("## although coordinates are longitude/latitude, st_intersects assumes that they are planar")
 ```
 
-This warning message relates to the way that `sf` deals with geographic coordinates and how it assumes they are projected. For some types of geometric operations, it is very important to be aware of the current projection (see [this r-spatial post])(https://r-spatial.org/r/2020/06/17/s2.html) for a nice explanation of the issue). For more general information on `sf` error messages, see the [sf misc page](https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about).
+This warning message relates to the way that `sf` deals with geographic coordinates and how it assumes they are projected. For some types of geometric operations, it is very important to be aware of the current projection (see [this r-spatial post](https://r-spatial.org/r/2020/06/17/s2.html) for a nice explanation of the issue). For more general information on `sf` error messages, see the [sf misc page](https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about).
 
 
 ## Timezones
