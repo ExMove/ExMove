@@ -35,7 +35,9 @@ This toolkit is meant as an accessible introduction to analysing tracking data u
 
 #### Optional/troubleshooting scripts
 - `R/Optional_Processing_CP_trips.R` - Code to process trips for central place data
-- `R/Optional_Processing_Resampling.R` - Code to resample data
+- `R/Optional_Processing_Resampling.R` - Code to resample high-resolution data
+- `R/Optional_Processing_Segmentation.R` - Code for segmenting gappy data
+- `R/Optional_Processing_gganimate.R` - Code for animating tracking data
 - `R/Troubleshoot_Multiple_ID_columns.R` - Code for troubleshooting data with multiple ID columns
 
 ### Data Description
