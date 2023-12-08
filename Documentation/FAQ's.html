@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.353">
+<meta name="generator" content="quarto-1.3.433">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
@@ -108,6 +108,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <ul class="collapse">
   <li><a href="#vector-memory-exhausted" id="toc-vector-memory-exhausted" class="nav-link" data-scroll-target="#vector-memory-exhausted">Vector memory exhausted</a></li>
   </ul></li>
+  <li><a href="#p.s-why-isnt-exmove-a-package" id="toc-p.s-why-isnt-exmove-a-package" class="nav-link" data-scroll-target="#p.s-why-isnt-exmove-a-package"><span class="header-section-number">7</span> P.S: Why isn’t ExMove a package?</a></li>
   </ul>
 </nav>
 </div>
@@ -144,7 +145,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="using-rstudio-projects-and-here-for-reproducible-filepaths" class="level3">
 <h3 class="anchored" data-anchor-id="using-rstudio-projects-and-here-for-reproducible-filepaths">Using RStudio projects and <code>here</code> for reproducible filepaths</h3>
 <p>When we open a <code>.Rproj</code> file (which should be the starting point for this workflow), this opens up a fresh instance of RStudio, with a dedicated project environment and access to all the folders and files contained inside that project folder. If you’re not familiar with using RStudio projects, have a look at <a href="https://r4ds.had.co.nz/workflow-projects.html#rstudio-projects">this section of R for Data Science</a> for a quick explained.</p>
-<p>By combining Rstudio projects with the <a href="https://here.r-lib.org/"><code>here</code></a> package, we can create relative filepaths that work across machines, so you won’t have to edit a complicated filepath to get the code to run (for more info see the <a href="https://here.r-lib.org/articles/here.html">‘Getting started’</a> section of the <code>here</code> documentation).</p>
+<p>By combining Rstudio projects with the <a href="https://here.r-lib.org/"><code>{here}</code></a> package, we can create relative filepaths that work across machines, so you won’t have to edit a complicated filepath to get the code to run (for more info see the <a href="https://here.r-lib.org/articles/here.html">‘Getting started’</a> section of the <code>here</code> documentation).</p>
 </section>
 </section>
 <section id="reporting-in-a-paper" class="level2" data-number="2">
@@ -191,7 +192,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <h2 data-number="4" class="anchored" data-anchor-id="geographic-projection-issues"><span class="header-section-number">4</span> Geographic projection issues</h2>
 <section id="what-is-a-crs" class="level3">
 <h3 class="anchored" data-anchor-id="what-is-a-crs">What is a CRS?</h3>
-<p>Coordinate Reference Systems (or CRS) are the framework we use to represent locations from a spherical earth on a two-dimensional plot. Usually we want to “project” these 3D points to a 2D plot in different ways, depending on the range and scale of our spatial data, and we use CRS codes to do this easily. Two common ESPG codes we use in our workflow are LatLon (<code>4326</code>) and Spherical mercator/WGS (<code>3857</code>), but you can also use the <a href="https://github.com/walkerke/crsuggest"><code>crssuggest</code></a> package to automatically determine the appropriate CRS for your data.</p>
+<p>Coordinate Reference Systems (or CRS) are the framework we use to represent locations from a spherical earth on a two-dimensional plot. Usually we want to “project” these 3D points to a 2D plot in different ways, depending on the range and scale of our spatial data, and we use CRS codes to do this easily. Two common ESPG codes we use in our workflow are LatLon (<code>4326</code>) and Spherical mercator/WGS (<code>3857</code>), but you can also use the <a href="https://github.com/walkerke/crsuggest"><code>{crssuggest}</code></a> package to automatically determine the appropriate CRS for your data.</p>
 <p>CRS for <code>sf</code> objects are usually defined at creation (e.g.&nbsp;the <code>crs =</code> argument of <code>st_as_sf</code>), but can also be retrieved or replaced with <a href="https://r-spatial.github.io/sf/reference/st_crs.html"><code>st_crs</code></a>, and transformed from one projection to another with <a href="https://r-spatial.github.io/sf/reference/st_transform.html"><code>st_transform</code></a>.</p>
 <p>More information on these concepts can be found in the sf documentation (see: <a href="https://r-spatial.org/r/2020/06/17/s2.html">The flat earth model</a> | <a href="https://r-spatial.github.io/sf/articles/sf7.html">spherical geometry</a> | <a href="https://r-spatial.github.io/sf/articles/sf6.html">miscellaneous</a>)</p>
 </section>
@@ -202,7 +203,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code>## although coordinates are longitude/latitude, st_intersects assumes that they are planar</code></pre>
 </div>
 </div>
-<p>This warning message relates to the way that <code>sf</code> deals with geographic coordinates and how it assumes they are projected. For some types of geometric operations, it is very important to be aware of the current projection (see <a href="https://r-spatial.org/r/2020/06/17/s2.html">this r-spatial post</a> for a nice explanation of the issue). For more general information on <code>sf</code> error messages, see the <a href="https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about">sf misc page</a>.</p>
+<p>This warning message relates to the way that <code>{sf}</code> deals with geographic coordinates and how it assumes they are projected. For some types of geometric operations, it is very important to be aware of the current projection (see <a href="https://r-spatial.org/r/2020/06/17/s2.html">this r-spatial post</a> for a nice explanation of the issue). For more general information on <code>{sf}</code> error messages, see the <a href="https://cran.r-project.org/web/packages/sf/vignettes/sf6.html#what_is_this_epsg_code_all_about">sf misc page</a>.</p>
 </section>
 </section>
 <section id="timezones" class="level2" data-number="5">
@@ -223,7 +224,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="converting-between-timezones" class="level3">
 <h3 class="anchored" data-anchor-id="converting-between-timezones">Converting between timezones</h3>
-<p>If you have data from different timezones and you want to convert everything to a common format, you can use <code>with_tz</code> from the <a href="https://lubridate.tidyverse.org/index.html"><code>lubridate</code></a> package (<a href="https://lubridate.tidyverse.org/reference/with_tz.html">example below taken from the function page</a>):</p>
+<p>If you have data from different timezones and you want to convert everything to a common format, you can use <code>with_tz</code> from the <a href="https://lubridate.tidyverse.org/index.html"><code>{lubridate}</code></a> package (<a href="https://lubridate.tidyverse.org/reference/with_tz.html">example below taken from the function page</a>):</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>x <span class="ot">&lt;-</span> <span class="fu">ymd_hms</span>(<span class="st">"2009-08-07 00:00:01"</span>, <span class="at">tz =</span> <span class="st">"America/New_York"</span>)</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">with_tz</span>(x, <span class="st">"GMT"</span>) <span class="co">#converts US DatTime to UK DateTime</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -250,6 +251,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p>Then add <code>R_MAX_VSIZE=32Gb</code> as a line to the .Renviron file that opens up (32Gb can be changed to whatever you want, but make sure this value includes the amount of RAM on your machine), then save it and restart the R session for changes to take effect. To return to default allocation, run the code a second time and remove the line you added. More detail (and the source of the above solution) can be found on <a href="https://stackoverflow.com/questions/51248293/error-vector-memory-exhausted-limit-reached-r-3-5-0-macos">Stackoverflow</a>.</p>
 </section>
+</section>
+<section id="p.s-why-isnt-exmove-a-package" class="level2" data-number="7">
+<h2 data-number="7" class="anchored" data-anchor-id="p.s-why-isnt-exmove-a-package"><span class="header-section-number">7</span> P.S: Why isn’t ExMove a package?</h2>
+<p>As <code>{sp}</code> is <a href="https://r-spatial.org/r/2023/04/10/evolution3.html#sp-evolution-status">gradually replaced</a> by <code>{sf}</code>, and tidyverse gains traction in the R community, researchers (ourselves included) working with animal movement data are in a position where they need to either update their existing code, or find access to modern learning resources. Unfortunately, there are no resources that show how use <code>{sf}</code> and tidyverse for animal movement in this way. Rather than create a new package (given that <code>{sf}</code> provides nearly all the required functions already), we opted to provide this code directly, in the same workflow format that we’d use it. This is so users can see and understand what is happening at each step, and can modify the workflow to suit their own needs. With the increasing importance of reproducibility in the scientific community, we hope that an open-access approach will help to make animal movement analysis more accessible and transparent.</p>
 </section>
 
 </main>

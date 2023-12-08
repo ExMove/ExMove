@@ -174,7 +174,7 @@ df_CPlocs <- df_CPlocs_optionA1
 # This will overwrite "CPLat" and "CPLon" if already present in df_filtered
 df_filtered_CPlocs  <- df_filtered %>%
   select(!any_of(c("CPLat", "CPLon", "CPdist"))) %>%
-  left_join(., df_CPlocs, by=ID_type) 
+  left_join(., df_CPlocs) 
 
 
 #------------------------------------------------------------------------------------------#
@@ -231,8 +231,8 @@ df_filtered_CPlocs <-  df_filtered_CPlocs %>%
 
 
 ## Define points at the CP using the distance threshold and CPdist column
-df_CP <- df_filtered %>%
-  mutate(atCP = ifelse(CPdist < threshold_dist, "Yes", "No")) # using distance threshold
+df_CP <- df_filtered_CPlocs %>%
+  mutate(atCP = ifelse(as.numeric(CPdist) < threshold_dist, "Yes", "No")) # using distance threshold
 
 
 #-----------------------------------------------------------#

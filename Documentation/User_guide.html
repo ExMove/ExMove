@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
-<meta name="generator" content="quarto-1.3.353">
+<meta name="generator" content="quarto-1.3.433">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="author" content="Alice Trevail">
 <meta name="author" content="Stephen Lang">
@@ -67,7 +67,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="User_guide_files/libs/bootstrap/bootstrap.min.js"></script>
 <link href="User_guide_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
 <link href="User_guide_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light"><script src="User_guide_files/libs/quarto-diagram/mermaid.min.js"></script><script src="User_guide_files/libs/quarto-diagram/mermaid-init.js"></script><link href="User_guide_files/libs/quarto-diagram/mermaid.css" rel="stylesheet">
-<link href="User_guide_files/libs/tabwid-1.1.2/tabwid.css" rel="stylesheet">
+<link href="User_guide_files/libs/tabwid-1.1.3/tabwid.css" rel="stylesheet">
+<script src="User_guide_files/libs/tabwid-1.1.3/tabwid.js"></script>
 </head>
 <body>
 
@@ -193,14 +194,16 @@ flowchart LR
 <li>User-defined parameters (see <a href="#user-inputs">user inputs</a>) are called within the subsequent processing steps</li>
 <li>Where you see: <code>## ** Option ** ##</code>, there is an alternative version of the code to fit some common alternative data formats</li>
 <li>Throughout, we will use some key functions to inspect the data (e.g., <code>head</code> for top rows, <code>str</code> for column types, and <code>names</code> for column names)</li>
-</ul></section><section id="required-data-structure" class="level5"><h5 class="anchored" data-anchor-id="required-data-structure">Required data structure:</h5>
+</ul></section><section id="data-and-directory-structure" class="level5"><h5 class="anchored" data-anchor-id="data-and-directory-structure">Data and directory structure:</h5>
 <ul>
-<li>Data files should all be stored in a specific place — ideally within the <code>Data</code> folder</li>
+<li>Data files should all be stored within the <code>Data</code> folder</li>
+<li>Folders and files are best named in <code>snakecase_format</code> as spaces in filepaths can cause issues</li>
+<li>Tracking data for each deployment/individual should be in a separate file</li>
+<li>Tracking data filenames should include an ID which is the same length for all individuals</li>
 <li>Tracking data must contain a timestamp and at least one other sensor column</li>
-<li>Data for each deployment/individual should be in a separate file</li>
-<li>ID should be in tracking data file name, and should be the same length for all individuals</li>
-<li>Metadata file should be in parent directory of data files</li>
-<li>Metadata should contain one row per individual per deployment</li>
+<li>Metadata file should be in the parent directory of data files</li>
+<li>Metadata should contain one row per individual per deployment <em>NB: if you have multiple animal movement projects, these should have completely separate directories</em>
+</li>
 </ul></section><section id="the-importance-of-id" class="level5"><h5 class="anchored" data-anchor-id="the-importance-of-id">The importance of ID:</h5>
 <ul>
 <li>Throughout this workflow, we use ID to refer to the unique code for an individual animal</li>
@@ -210,8 +213,7 @@ flowchart LR
 <li>For more info and helpful code, see the FAQ document &amp; troubleshooting script</li>
 </ul></section><section id="how-to-troubleshoot-problems-if-something-doesnt-work-with-your-data" class="level5"><h5 class="anchored" data-anchor-id="how-to-troubleshoot-problems-if-something-doesnt-work-with-your-data">How to troubleshoot problems if something doesn’t work with your data:</h5>
 <ul>
-<li>Refer to the FAQ document in the GitHub page</li>
-<li>This signposts to helpful resources online (e.g., spatial co-ordinate systems)</li>
+<li>Refer to the FAQ document in the GitHub page, which signposts to helpful resources online (e.g., CRS)</li>
 <li>See the troubleshooting code scripts that we’ve written to accompany this workflow (e.g., using multiple ID columns for re-deployments of tags/individuals)</li>
 <li>All functions in code chunks are automatically hyperlinked to their documentation, so feel free to explore this if you want to understand more about how this code works!</li>
 </ul></section><section id="load-required-libraries" class="level5"><h5 class="anchored" data-anchor-id="load-required-libraries">Load required libraries</h5>
@@ -234,15 +236,15 @@ flowchart LR
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Throughout the script, we’ll be saving files using a species code as a file/folder identifier. Let’s define this object here for consistency:</p>
+<p>Throughout the script, we’ll be saving files using a species code as a file/folder identifier. Our code is taken from the first letters of the species name (<strong>R</strong>ed <strong>F</strong>ooted <strong>B</strong>ooby) but can be anything you choose (shorter the better as long as it’s unique per species). Let’s define this object first for consistency:</p>
 <div class="cell">
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">species_code</span> <span class="op">&lt;-</span> <span class="st">"RFB"</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Set filepath for the folder containing raw data files (this code will try to list and open all files matching the file pattern within this folder, so it is best if this folder contains only the raw data files).</p>
+<p>Set filepath for the folder containing raw data files (this code will try to list and open all files matching the file pattern within this folder, so it is best if this folder contains only the raw data files). <strong><em>NB:</em></strong> <em>if you are working outside of a project, you’ll need to check that <a href="https://here.r-lib.org/">here</a> is using the correct working directory.</em></p>
 <div class="cell">
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">filepath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"Data"</span>, <span class="st">"RFB"</span><span class="op">)</span>  <span class="co">#create relative filepath using folder names</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">filepath</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://here.r-lib.org//reference/here.html">here</a></span><span class="op">(</span><span class="st">"Data"</span>, <span class="va">species_code</span><span class="op">)</span>  <span class="co">#create relative filepath using folder name and species code</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Define common file pattern to look for. An asterisk (<code>*</code>) is the wildcard, will will match any character except a forward-slash (e.g.&nbsp;<code>*.csv</code> will import all files that end with “.csv”).</p>
+<p>Define common file pattern to look for. An asterisk (<code>*</code>) is the wildcard, will match any character except a forward-slash (e.g.&nbsp;<code>*.csv</code> will import all files that end with “.csv”).</p>
 <div class="cell">
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">filepattern</span> <span class="op">&lt;-</span> <span class="st">"*.csv"</span> <span class="co"># data file format</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -255,7 +257,7 @@ flowchart LR
 [3] "GV37734_201807_NI_RFB.csv"</code></pre>
 </div>
 </div>
-<p>Adjust these numbers for extracting the ID number from file name using <a href="https://stringr.tidyverse.org/index.html"><code>stringr</code></a> (e.g.&nbsp;to extract <code>GV37501</code> from “GV37501_201606_DG_RFB.csv”, we want characters 1-7).  <strong>NB:</strong> this approach only works if all ID’s are the same length and in the same position — see the <a href="https://stringr.tidyverse.org/reference/str_sub.html"><code>str_sub</code></a> documentation for other options.</p>
+<p>Adjust these numbers for extracting the ID number from file name using <a href="https://stringr.tidyverse.org/index.html"><code>stringr</code></a> (e.g.&nbsp;to extract <code>GV37501</code> from “GV37501_201606_DG_RFB.csv”, we want characters 1-7).  <strong><em>NB:</em></strong> <em>this approach only works if all ID’s are the same length and in the same position — see the <a href="https://stringr.tidyverse.org/reference/str_sub.html"><code>str_sub</code></a> documentation for other options.</em></p>
 <div class="cell">
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">IDstart</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="co">#start position of the ID in the filename </span></span>
 <span><span class="va">IDend</span> <span class="op">&lt;-</span> <span class="fl">7</span> <span class="co">#end position of the ID in the filename</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -350,20 +352,20 @@ flowchart LR
 <span><span class="va">df_combined</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 6,650 × 12
-   filename ID    Date  Time  Latit…¹ Longi…² Altit…³ Speed Course Type  Dista…⁴
-   &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt;   &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt;  
- 1 GV37501… GV37… 24/0… 5.06  -7.261… 72.376… 56.18   3636  93     -2    0.00   
- 2 GV37501… GV37… 24/0… 05:2… -7.261… 72.376… 56.18   3636  93     0     0.00   
- 3 GV37501… GV37… 24/0… 05:2… -7.261… 72.376… 64.91   5112  32     0     17.17  
- 4 GV37501… GV37… 24/0… 05:5… -7.261… 72.376… -15.77  936   291    0     16.34  
- 5 GV37501… GV37… 24/0… 06:2… -7.261… 72.376… 30.91   1080  124    0     22.06  
- 6 GV37501… GV37… 24/0… 06:2… -7.261… 72.376… 26.8    0     280    0     6.26   
- 7 GV37501… GV37… 24/0… 06:3… -7.261… 72.376… 21.77   0     183    0     10.73  
- 8 GV37501… GV37… 24/0… 06:3… -7.261… 72.376… 30.78   2844  268    0     1.84   
- 9 GV37501… GV37… 24/0… 06:4… -7.261… 72.376… 27.1    1476  44     0     8.38   
-10 GV37501… GV37… 24/0… 06:4… -7.261… 72.375… -35.04  0     260    0     60.99  
-# … with 6,640 more rows, 1 more variable: Essential &lt;chr&gt;, and abbreviated
-#   variable names ¹​Latitude, ²​Longitude, ³​Altitude, ⁴​Distance</code></pre>
+   filename     ID    Date  Time  Latitude Longitude Altitude Speed Course Type 
+   &lt;chr&gt;        &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;    &lt;chr&gt;     &lt;chr&gt;    &lt;chr&gt; &lt;chr&gt;  &lt;chr&gt;
+ 1 GV37501_201… GV37… 24/0… 5.06  -7.2618… 72.376091 56.18    3636  93     -2   
+ 2 GV37501_201… GV37… 24/0… 05:2… -7.2618… 72.376091 56.18    3636  93     0    
+ 3 GV37501_201… GV37… 24/0… 05:2… -7.2617… 72.376221 64.91    5112  32     0    
+ 4 GV37501_201… GV37… 24/0… 05:5… -7.2616… 72.376137 -15.77   936   291    0    
+ 5 GV37501_201… GV37… 24/0… 06:2… -7.2616… 72.376335 30.91    1080  124    0    
+ 6 GV37501_201… GV37… 24/0… 06:2… -7.2616… 72.376289 26.8     0     280    0    
+ 7 GV37501_201… GV37… 24/0… 06:3… -7.2615… 72.376198 21.77    0     183    0    
+ 8 GV37501_201… GV37… 24/0… 06:3… -7.2615… 72.376205 30.78    2844  268    0    
+ 9 GV37501_201… GV37… 24/0… 06:4… -7.2616… 72.376259 27.1     1476  44     0    
+10 GV37501_201… GV37… 24/0… 06:4… -7.2614… 72.375732 -35.04   0     260    0    
+# ℹ 6,640 more rows
+# ℹ 2 more variables: Distance &lt;chr&gt;, Essential &lt;chr&gt;</code></pre>
 </div>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/colnames.html">colnames</a></span><span class="op">(</span><span class="va">df_combined</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -410,7 +412,7 @@ flowchart LR
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>First, data need a time stamp, either in separate columns (e.g., “Date” and “Time”) or combined (“DateTime”). Below we specify which column’s date and time info are stored in the data.  <strong>NB:</strong> These have to be in the same order as specified in earlier user input, i.e.&nbsp;“Date” and “Time” have to be the right way round</p>
+<p>First, data need a time stamp, either in separate columns (e.g., “Date” and “Time”) or combined (“DateTime”). Below we specify which column’s date and time info are stored in the data.  <strong><em>NB:</em></strong> <em>These have to be in the same order as specified in earlier user input, i.e.&nbsp;“Date” and “Time” have to be the right way round</em></p>
 <div class="cell">
 <div class="sourceCode" id="cb24"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">datetime_formats</span> <span class="co"># previously specified datetime formats</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
@@ -528,69 +530,70 @@ Note
 <p>Metadata are an essential piece of information for any tracking study, as they contain important information about each data file, such as tag ID, animal ID, or deployment information, that we can add back into to our raw data when needed. For example, the table below shows what the first few columns of the metadata file looks like for our example red-footed booby data:</p>
 <div class="cell">
 <div class="cell-output-display">
+
 <div class="tabwid">
-<style>.cl-3c1401de{}.cl-3c109c9c{font-family:'Helvetica';font-size:8pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3c109cb0{font-family:'Helvetica';font-size:7.5pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-3c11f4ca{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-3c11fe52{width:1.049in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe5c{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe5d{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe66{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe67{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe70{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe71{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe72{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe7a{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe7b{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe7c{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe84{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe85{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 2pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe8e{width:1.049in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe8f{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe90{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe98{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fe99{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fea2{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fea3{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fea4{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feac{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fead{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feae{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feb6{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feb7{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fec0{width:1.049in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fec1{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fec2{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fec3{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feca{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fecb{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fecc{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fed4{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fed5{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fed6{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fed7{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fede{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fedf{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 0.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fee8{width:1.049in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fee9{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feea{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feeb{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11feec{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fef2{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fef3{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fef4{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fefc{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fefd{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11fefe{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11ff06{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-3c11ff07{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 2pt solid rgba(102, 102, 102, 1.00);border-top: 0.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
-<table class="cl-3c1401de table table-sm table-striped small" data-quarto-postprocess="true">
-<thead><tr class="header" style="overflow-wrap:break-word;">
-<th class="cl-3c11fe52" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">TagID</span></p></th>
-<th class="cl-3c11fe5c" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">BirdID</span></p></th>
-<th class="cl-3c11fe5d" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">DeployID</span></p></th>
-<th class="cl-3c11fe66" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">Species</span></p></th>
-<th class="cl-3c11fe67" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">Population</span></p></th>
-<th class="cl-3c11fe70" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">Age</span></p></th>
-<th class="cl-3c11fe71" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">BreedingStage</span></p></th>
-<th class="cl-3c11fe72" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">DeploymentDate</span></p></th>
-<th class="cl-3c11fe7a" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">DeploymentTime</span></p></th>
-<th class="cl-3c11fe7b" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">RetrievalDate</span></p></th>
-<th class="cl-3c11fe7c" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">RetrievalTime</span></p></th>
-<th class="cl-3c11fe84" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">NestLat</span></p></th>
-<th class="cl-3c11fe85" data-quarto-table-cell-role="th"><p><span class="cl-3c109c9c">NestLong</span></p></th>
+<style>.cl-93882e24{}.cl-9384b05a{font-family:'Helvetica';font-size:8pt;font-weight:bold;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-9384b06e{font-family:'Helvetica';font-size:7.5pt;font-weight:normal;font-style:normal;text-decoration:none;color:rgba(0, 0, 0, 1.00);background-color:transparent;}.cl-938610ee{margin:0;text-align:left;border-bottom: 0 solid rgba(0, 0, 0, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);padding-bottom:5pt;padding-top:5pt;padding-left:5pt;padding-right:5pt;line-height: 1;background-color:transparent;}.cl-93861ada{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861ae4{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861ae5{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861ae6{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861aee{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861aef{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861af0{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861af1{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861af8{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861af9{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861afa{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861afb{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b02{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 1.5pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b03{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b04{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b0c{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b0d{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b0e{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b0f{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b16{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b17{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b18{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b20{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b21{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b2a{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b2b{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0 solid rgba(0, 0, 0, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b34{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b35{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b36{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b37{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b3e{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b3f{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b40{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b48{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b49{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b4a{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b4b{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b52{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b53{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 0.75pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b54{width:0.71in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b55{width:0.931in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b5c{width:0.947in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b5d{width:0.863in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b66{width:1.074in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b67{width:0.633in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b70{width:1.363in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b71{width:1.491in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b72{width:1.516in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b73{width:1.262in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b7a{width:1.287in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b7b{width:0.845in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}.cl-93861b7c{width:0.99in;background-color:transparent;vertical-align: middle;border-bottom: 1.5pt solid rgba(102, 102, 102, 1.00);border-top: 0.75pt solid rgba(102, 102, 102, 1.00);border-left: 0 solid rgba(0, 0, 0, 1.00);border-right: 0 solid rgba(0, 0, 0, 1.00);margin-bottom:0;margin-top:0;margin-left:0;margin-right:0;}</style>
+<table data-quarto-disable-processing="true" class="cl-93882e24">
+<thead><tr style="overflow-wrap:break-word;">
+<th class="cl-93861ada"><p class="cl-938610ee"><span class="cl-9384b05a">TagID</span></p></th>
+<th class="cl-93861ae4"><p class="cl-938610ee"><span class="cl-9384b05a">BirdID</span></p></th>
+<th class="cl-93861ae5"><p class="cl-938610ee"><span class="cl-9384b05a">DeployID</span></p></th>
+<th class="cl-93861ae6"><p class="cl-938610ee"><span class="cl-9384b05a">Species</span></p></th>
+<th class="cl-93861aee"><p class="cl-938610ee"><span class="cl-9384b05a">Population</span></p></th>
+<th class="cl-93861aef"><p class="cl-938610ee"><span class="cl-9384b05a">Age</span></p></th>
+<th class="cl-93861af0"><p class="cl-938610ee"><span class="cl-9384b05a">BreedingStage</span></p></th>
+<th class="cl-93861af1"><p class="cl-938610ee"><span class="cl-9384b05a">DeploymentDate</span></p></th>
+<th class="cl-93861af8"><p class="cl-938610ee"><span class="cl-9384b05a">DeploymentTime</span></p></th>
+<th class="cl-93861af9"><p class="cl-938610ee"><span class="cl-9384b05a">RetrievalDate</span></p></th>
+<th class="cl-93861afa"><p class="cl-938610ee"><span class="cl-9384b05a">RetrievalTime</span></p></th>
+<th class="cl-93861afb"><p class="cl-938610ee"><span class="cl-9384b05a">NestLat</span></p></th>
+<th class="cl-93861b02"><p class="cl-938610ee"><span class="cl-9384b05a">NestLong</span></p></th>
 </tr></thead>
 <tbody>
-<tr class="odd" style="overflow-wrap:break-word;">
-<td class="cl-3c11fe8e"><p><span class="cl-3c109cb0">5</span></p></td>
-<td class="cl-3c11fe8f"><p><span class="cl-3c109cb0">GV37501</span></p></td>
-<td class="cl-3c11fe90"><p><span class="cl-3c109cb0">1</span></p></td>
-<td class="cl-3c11fe98"><p><span class="cl-3c109cb0">RFB</span></p></td>
-<td class="cl-3c11fe99"><p><span class="cl-3c109cb0">DG</span></p></td>
-<td class="cl-3c11fea2"><p><span class="cl-3c109cb0">Adult</span></p></td>
-<td class="cl-3c11fea3"><p><span class="cl-3c109cb0">Chick rearing</span></p></td>
-<td class="cl-3c11fea4"><p><span class="cl-3c109cb0">25/06/2016</span></p></td>
-<td class="cl-3c11feac"><p><span class="cl-3c109cb0">16:25:00</span></p></td>
-<td class="cl-3c11fead"><p><span class="cl-3c109cb0">29/06/2016</span></p></td>
-<td class="cl-3c11feae"><p><span class="cl-3c109cb0">09:32:00</span></p></td>
-<td class="cl-3c11feb6"><p><span class="cl-3c109cb0">-7.2386</span></p></td>
-<td class="cl-3c11feb7"><p><span class="cl-3c109cb0">72.4347</span></p></td>
+<tr style="overflow-wrap:break-word;">
+<td class="cl-93861b03"><p class="cl-938610ee"><span class="cl-9384b06e">5</span></p></td>
+<td class="cl-93861b04"><p class="cl-938610ee"><span class="cl-9384b06e">GV37501</span></p></td>
+<td class="cl-93861b0c"><p class="cl-938610ee"><span class="cl-9384b06e">1</span></p></td>
+<td class="cl-93861b0d"><p class="cl-938610ee"><span class="cl-9384b06e">RFB</span></p></td>
+<td class="cl-93861b0e"><p class="cl-938610ee"><span class="cl-9384b06e">DG</span></p></td>
+<td class="cl-93861b0f"><p class="cl-938610ee"><span class="cl-9384b06e">Adult</span></p></td>
+<td class="cl-93861b16"><p class="cl-938610ee"><span class="cl-9384b06e">Chick rearing</span></p></td>
+<td class="cl-93861b17"><p class="cl-938610ee"><span class="cl-9384b06e">25/06/2016</span></p></td>
+<td class="cl-93861b18"><p class="cl-938610ee"><span class="cl-9384b06e">16:25:00</span></p></td>
+<td class="cl-93861b20"><p class="cl-938610ee"><span class="cl-9384b06e">29/06/2016</span></p></td>
+<td class="cl-93861b21"><p class="cl-938610ee"><span class="cl-9384b06e">09:32:00</span></p></td>
+<td class="cl-93861b2a"><p class="cl-938610ee"><span class="cl-9384b06e">-7.2386</span></p></td>
+<td class="cl-93861b2b"><p class="cl-938610ee"><span class="cl-9384b06e">72.4347</span></p></td>
 </tr>
-<tr class="even" style="overflow-wrap:break-word;">
-<td class="cl-3c11fec0"><p><span class="cl-3c109cb0">46</span></p></td>
-<td class="cl-3c11fec1"><p><span class="cl-3c109cb0">GV37503</span></p></td>
-<td class="cl-3c11fec2"><p><span class="cl-3c109cb0">1</span></p></td>
-<td class="cl-3c11fec3"><p><span class="cl-3c109cb0">RFB</span></p></td>
-<td class="cl-3c11feca"><p><span class="cl-3c109cb0">DG</span></p></td>
-<td class="cl-3c11fecb"><p><span class="cl-3c109cb0">Adult</span></p></td>
-<td class="cl-3c11fecc"><p><span class="cl-3c109cb0">Chick rearing</span></p></td>
-<td class="cl-3c11fed4"><p><span class="cl-3c109cb0">26/06/2016</span></p></td>
-<td class="cl-3c11fed5"><p><span class="cl-3c109cb0">08:30:00</span></p></td>
-<td class="cl-3c11fed6"><p><span class="cl-3c109cb0">01/07/2016</span></p></td>
-<td class="cl-3c11fed7"><p><span class="cl-3c109cb0">07:55:00</span></p></td>
-<td class="cl-3c11fede"><p><span class="cl-3c109cb0">-7.2386</span></p></td>
-<td class="cl-3c11fedf"><p><span class="cl-3c109cb0">72.4347</span></p></td>
+<tr style="overflow-wrap:break-word;">
+<td class="cl-93861b34"><p class="cl-938610ee"><span class="cl-9384b06e">46</span></p></td>
+<td class="cl-93861b35"><p class="cl-938610ee"><span class="cl-9384b06e">GV37503</span></p></td>
+<td class="cl-93861b36"><p class="cl-938610ee"><span class="cl-9384b06e">1</span></p></td>
+<td class="cl-93861b37"><p class="cl-938610ee"><span class="cl-9384b06e">RFB</span></p></td>
+<td class="cl-93861b3e"><p class="cl-938610ee"><span class="cl-9384b06e">DG</span></p></td>
+<td class="cl-93861b3f"><p class="cl-938610ee"><span class="cl-9384b06e">Adult</span></p></td>
+<td class="cl-93861b40"><p class="cl-938610ee"><span class="cl-9384b06e">Chick rearing</span></p></td>
+<td class="cl-93861b48"><p class="cl-938610ee"><span class="cl-9384b06e">26/06/2016</span></p></td>
+<td class="cl-93861b49"><p class="cl-938610ee"><span class="cl-9384b06e">08:30:00</span></p></td>
+<td class="cl-93861b4a"><p class="cl-938610ee"><span class="cl-9384b06e">01/07/2016</span></p></td>
+<td class="cl-93861b4b"><p class="cl-938610ee"><span class="cl-9384b06e">07:55:00</span></p></td>
+<td class="cl-93861b52"><p class="cl-938610ee"><span class="cl-9384b06e">-7.2386</span></p></td>
+<td class="cl-93861b53"><p class="cl-938610ee"><span class="cl-9384b06e">72.4347</span></p></td>
 </tr>
-<tr class="odd" style="overflow-wrap:break-word;">
-<td class="cl-3c11fee8"><p><span class="cl-3c109cb0">FW352Cs5</span></p></td>
-<td class="cl-3c11fee9"><p><span class="cl-3c109cb0">GV37734</span></p></td>
-<td class="cl-3c11feea"><p><span class="cl-3c109cb0">1</span></p></td>
-<td class="cl-3c11feeb"><p><span class="cl-3c109cb0">RFB</span></p></td>
-<td class="cl-3c11feec"><p><span class="cl-3c109cb0">NI</span></p></td>
-<td class="cl-3c11fef2"><p><span class="cl-3c109cb0">Adult</span></p></td>
-<td class="cl-3c11fef3"><p><span class="cl-3c109cb0">Chick rearing</span></p></td>
-<td class="cl-3c11fef4"><p><span class="cl-3c109cb0">08/07/2018</span></p></td>
-<td class="cl-3c11fefc"><p><span class="cl-3c109cb0">09:48:00</span></p></td>
-<td class="cl-3c11fefd"><p><span class="cl-3c109cb0">11/07/2018</span></p></td>
-<td class="cl-3c11fefe"><p><span class="cl-3c109cb0">09:05:00</span></p></td>
-<td class="cl-3c11ff06"><p><span class="cl-3c109cb0">-5.6812</span></p></td>
-<td class="cl-3c11ff07"><p><span class="cl-3c109cb0">72.3165</span></p></td>
+<tr style="overflow-wrap:break-word;">
+<td class="cl-93861b54"><p class="cl-938610ee"><span class="cl-9384b06e">35</span></p></td>
+<td class="cl-93861b55"><p class="cl-938610ee"><span class="cl-9384b06e">GV37734</span></p></td>
+<td class="cl-93861b5c"><p class="cl-938610ee"><span class="cl-9384b06e">1</span></p></td>
+<td class="cl-93861b5d"><p class="cl-938610ee"><span class="cl-9384b06e">RFB</span></p></td>
+<td class="cl-93861b66"><p class="cl-938610ee"><span class="cl-9384b06e">NI</span></p></td>
+<td class="cl-93861b67"><p class="cl-938610ee"><span class="cl-9384b06e">Adult</span></p></td>
+<td class="cl-93861b70"><p class="cl-938610ee"><span class="cl-9384b06e">Chick rearing</span></p></td>
+<td class="cl-93861b71"><p class="cl-938610ee"><span class="cl-9384b06e">08/07/2018</span></p></td>
+<td class="cl-93861b72"><p class="cl-938610ee"><span class="cl-9384b06e">09:48:00</span></p></td>
+<td class="cl-93861b73"><p class="cl-938610ee"><span class="cl-9384b06e">11/07/2018</span></p></td>
+<td class="cl-93861b7a"><p class="cl-938610ee"><span class="cl-9384b06e">09:05:00</span></p></td>
+<td class="cl-93861b7b"><p class="cl-938610ee"><span class="cl-9384b06e">-5.6812</span></p></td>
+<td class="cl-93861b7c"><p class="cl-938610ee"><span class="cl-9384b06e">72.3165</span></p></td>
 </tr>
 </tbody>
 </table>
@@ -636,7 +639,7 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Then we select necessary comments &amp; coerce column names, making sure to provide four compulsory columns: <strong>ID</strong> — as defined in tracking data (individual <strong>ID</strong> or <strong>TagID</strong>), <strong>deployment date</strong> &amp; <strong>deployment time</strong>. We can also provide optional columns depending on sensor type: e.g.&nbsp;colony, sex, age. You can add or delete other columns where appropriate.</p>
+<p>Then we select necessary columns &amp; create a new complete dataframe, making sure to provide four compulsory columns: <strong>ID</strong> — as defined in tracking data (individual <strong>ID</strong> or <strong>TagID</strong>), <strong>deployment date</strong> &amp; <strong>deployment time</strong>. We can also provide optional columns depending on sensor type: e.g.&nbsp;colony, sex, age. You can add or delete other columns where appropriate.</p>
 <p>If you have multiple ID columns like TagID/DeployID, include them here (for example, if one individual was tracked over multiple deployments/years, or if one tag was re-deployed on multiple individuals). For more information and helpful code, see the <a href="FAQ's.html">FAQ document</a> and <a href="https://github.com/ExMove/ExMove/blob/main/R/Troubleshoot_Multiple%20ID%20columns.R">troubleshooting script</a>.</p>
 <p><strong>Deployment and retrieval dates:</strong> Different tags types sometimes require specific approaches for dealing with data collected outside of deployment period (e.g., before deployment or after retrieval). If data need to be filtered for one or both of these scenarios, we need to sort out these columns in the metadata, and if not relevant for the data, set the column name to “NA”.</p>
 <p><strong>Central Place foragers:</strong> If you are working with a central place forager (e.g., animals returning to a breeding location) and you have individual breeding location information in your metadata, here is a good place to add this info to the tracking data (e.g., breeding seabirds with known individual nest location, or seals returning to known haul-out location). We recommend adding these columns as: <code>CPY = Central place Y coordinate column</code> &amp; <code>CPX = Central place X coordinate column</code></p>
@@ -651,7 +654,7 @@ Note
 <span>                              CPY <span class="op">=</span> <span class="va">df_metadata</span><span class="op">$</span><span class="va">NestLat</span>,</span>
 <span>                              CPX <span class="op">=</span> <span class="va">df_metadata</span><span class="op">$</span><span class="va">NestLong</span>,</span>
 <span>                              Species <span class="op">=</span> <span class="st">"RFB"</span>,</span>
-<span>                              Population <span class="op">=</span> <span class="st">"Population"</span>,</span>
+<span>                              Population <span class="op">=</span> <span class="va">df_metadata</span><span class="op">$</span><span class="va">Population</span>,</span>
 <span>                              Age <span class="op">=</span> <span class="va">df_metadata</span><span class="op">$</span><span class="va">Age</span>,</span>
 <span>                              BreedStage <span class="op">=</span> <span class="va">df_metadata</span><span class="op">$</span><span class="va">BreedingStage</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -777,12 +780,12 @@ Option: select alternative columns
 5 GV37501 2016-06-25 10:49:02 -7.239048 72.435059 2016-06-25 10:49:02 2016
 6 GV37501 2016-06-25 10:54:38 -7.238441 72.434708 2016-06-25 10:54:38 2016
   TagID DeployID     CPY     CPX Species Population   Age    BreedStage
-1     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-2     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-3     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-4     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-5     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-6     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
+1     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+2     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+3     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+4     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+5     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+6     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
        Deploydatetime    Retrievedatetime
 1 2016-06-25 10:25:00 2016-06-29 03:32:00
 2 2016-06-25 10:25:00 2016-06-29 03:32:00
@@ -804,7 +807,7 @@ Option: Filter by fix quality
 </div>
 <div id="callout-10" class="callout-10-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>Argos fix quality can be used to filter the data set to remove locations with too much uncertainty. If you know the error classes that you want to retain in a dataset, you can run this filter below.  <strong>NB:</strong> If you want to do further exploration of location quality (e.g., from GPS PTT tags to compare locations with contemporaneous GPS locations), keep all location classes by skipping this step.</p>
+<p>Argos fix quality can be used to filter the data set to remove locations with too much uncertainty. If you know the error classes that you want to retain in a dataset, you can run this filter below.  <strong><em>NB:</em></strong> <em>If you want to do further exploration of location quality (e.g., from GPS PTT tags to compare locations with contemporaneous GPS locations), keep all location classes by skipping this step.</em></p>
 <p>In this example we define a vector of location classes to keep (typically, location classes 1, 2, and 3 are of sufficient certainty), and filter out everything else.</p>
 <div class="cell">
 <div class="sourceCode" id="cb51"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">lc_keep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span><span class="op">)</span></span>
@@ -837,13 +840,13 @@ Option: Filter by fix quality
 <span><span class="va">meta_crs</span> <span class="op">&lt;-</span> <span class="fl">4326</span> <span class="co"># Only change if data are in a different coordinate system</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Next we transform coordinates of data, and perform spatial calculations. This requires spatial analysis, and so it is good practice to run all spatial analyses in a coordinate reference system that uses metres as a unit.</p>
-<p>The default CRS for this workflow is the Spherical Mercator projection — <em>aka</em> “WGS” (<code>crs = 3857</code>), which is used by Google maps and works worldwide. However, WGS can over-estimate distance calculations in some cases, so it’s important to consider the location and scale of your data (e.g., equatorial/polar/local scale/global scale) and choose a projection system to match. Other options include (but are not limited to) UTM, and Lambert azimuthal equal-area (LAEA).</p>
+<p>The default CRS for this workflow is the <a href="https://epsg.io/3857">Spherical Mercator projection</a> — (<code>crs = 3857</code>), which is used by Google Maps/OpenStreetMap and works worldwide. However, this CRS can over-estimate distance calculations in some cases, so it’s important to consider the location and scale of your data (e.g., equatorial/polar/local scale/global scale) and choose a projection system to match. Other options include (but are not limited to) UTM, and Lambert Azimuthal Equal-Area (LAEA) projections.</p>
 <div class="cell">
 <div class="sourceCode" id="cb54"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">transform_crs</span> <span class="op">&lt;-</span> <span class="fl">3857</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </div>
 </div>
-<p>Here we’ll calculate bearings relative to first location.</p>
+<p>Here we’ll calculate some useful movement metrics from the tracking data, including distance between fixes, time between fixes, and net displacement from the first fix.</p>
 <div class="cell">
 <div class="sourceCode" id="cb55"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">df_diagnostic</span> <span class="op">&lt;-</span>  <span class="va">df_clean</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html">ungroup</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html">%&gt;%</a></span> <span class="co">#need to ungroup to extract geometry of the whole dataset</span></span>
@@ -921,8 +924,8 @@ Option: Filter by fix quality
 </section><section id="option-2" class="level4"><h4 class="anchored" data-anchor-id="option-2">Option 2:</h4>
 <p>Alternatively run the app from your local R session with the following code</p>
 <div class="cell">
-<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="st"><a href="https://shiny.rstudio.com/">"shiny"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"shiny"</span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.rstudio.com/">shiny</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb62"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw">if</span> <span class="op">(</span><span class="op">!</span><span class="kw"><a href="https://rdrr.io/r/base/library.html">require</a></span><span class="op">(</span><span class="st"><a href="https://shiny.posit.co/">"shiny"</a></span><span class="op">)</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html">install.packages</a></span><span class="op">(</span><span class="st">"shiny"</span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://shiny.posit.co/">shiny</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/shiny/man/runUrl.html">runGitHub</a></span><span class="op">(</span><span class="st">"ExMoveApp"</span>, username <span class="op">=</span> <span class="st">"LukeOzsanlav"</span>,</span>
 <span>          ref <span class="op">=</span> <span class="st">"master"</span>, subdir <span class="op">=</span> <span class="st">"app"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -931,6 +934,7 @@ Option: Filter by fix quality
 <li>Upload your csv version of <code>df_diagnostic</code> to the app by clicking the <code>Upload data</code> button in the top left.</li>
 <li>At the bottom of each app page are printed code chunks that can be copied into subsequent user input section. These code chunks contain the user input values you manually select in the app</li>
 </ul></section><section id="define-threshold-values" class="level4"><h4 class="anchored" data-anchor-id="define-threshold-values">Define threshold values</h4>
+<p>For this section, you can either use the code chunks produced by the Shiny app, or manually define the threshold values yourself. If you’re using the Shiny app, you can copy the code chunks from the bottom of each page to replace the user input section below. If you’re manually defining the threshold values, you can edit each of the variables below as you would for any of the user input sections (we have suggested some for the RFB dataset).</p>
 <div class="callout callout-style-default callout-warning no-icon callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -963,7 +967,7 @@ Option: Filter by fix quality
 <section id="implement-filters" class="level5"><h5 class="anchored" data-anchor-id="implement-filters">Implement filters</h5>
 <p>Create net displacement filter using distance and units</p>
 <div class="cell">
-<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">filter_netdisp</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/units/man/units.html">as_units</a></span><span class="op">(</span><span class="va">filter_netdisp_dist</span>, <span class="va">filter_netdist_units</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb66"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">filter_netdisp</span> <span class="op">&lt;-</span> <span class="fu">units</span><span class="fu">::</span><span class="fu"><a href="https://r-quantities.github.io/units/reference/units.html">as_units</a></span><span class="op">(</span><span class="va">filter_netdisp_dist</span>, <span class="va">filter_netdist_units</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Filter df_diagnostic</p>
 <div class="cell">
@@ -973,34 +977,34 @@ Option: Filter by fix quality
 <span>         <span class="va">netdisp</span> <span class="op">&lt;=</span> <span class="va">filter_netdisp</span><span class="op">)</span> <span class="co"># keep distances less than net displacement filter</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html">head</a></span><span class="op">(</span><span class="va">df_filtered</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>        ID       Date     Time         Y         X            DateTime Year
-7  GV37501 2016-06-25 11:01:04 -7.238462 72.434708 2016-06-25 11:01:04 2016
-8  GV37501 2016-06-25 11:08:50 -7.238486 72.434738 2016-06-25 11:08:50 2016
-9  GV37501 2016-06-25 11:17:13 -7.238597 72.435005 2016-06-25 11:17:13 2016
-10 GV37501 2016-06-25 11:25:16 -7.231193 72.434624 2016-06-25 11:25:16 2016
-11 GV37501 2016-06-25 11:30:32  -7.23855 72.434731 2016-06-25 11:30:32 2016
-12 GV37501 2016-06-25 11:36:43 -7.238533 72.434761 2016-06-25 11:36:43 2016
-   TagID DeployID     CPY     CPX Species Population   Age    BreedStage
-7      5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-8      5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-9      5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-10     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-11     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-12     5        1 -7.2386 72.4347     RFB Population Adult Chick rearing
-        Deploydatetime    Retrievedatetime           dist difftime
-7  2016-06-25 10:25:00 2016-06-29 03:32:00   2.356490 [m] 386 secs
-8  2016-06-25 10:25:00 2016-06-29 03:32:00   4.290196 [m] 466 secs
-9  2016-06-25 10:25:00 2016-06-29 03:32:00  32.226707 [m] 503 secs
-10 2016-06-25 10:25:00 2016-06-29 03:32:00 831.906239 [m] 483 secs
-11 2016-06-25 10:25:00 2016-06-29 03:32:00 825.636254 [m] 316 secs
-12 2016-06-25 10:25:00 2016-06-29 03:32:00   3.846024 [m] 371 secs
-         netdisp       speed turnangle      Lon       Lat
-7   64.96002 [m] 0.006104896 180.00000 72.43471 -7.238462
-8   60.84931 [m] 0.009206429 128.65981 72.43474 -7.238486
-9   38.27498 [m] 0.064069000 112.57414 72.43501 -7.238597
-10 870.11594 [m] 1.722373165 357.05423 72.43462 -7.231193
-11  55.51973 [m] 2.612772957 179.16675 72.43473 -7.238550
-12  55.05007 [m] 0.010366640  60.46122 72.43476 -7.238533</code></pre>
+<pre><code>       ID       Date     Time         Y         X            DateTime Year
+1 GV37501 2016-06-25 11:01:04 -7.238462 72.434708 2016-06-25 11:01:04 2016
+2 GV37501 2016-06-25 11:08:50 -7.238486 72.434738 2016-06-25 11:08:50 2016
+3 GV37501 2016-06-25 11:17:13 -7.238597 72.435005 2016-06-25 11:17:13 2016
+4 GV37501 2016-06-25 11:25:16 -7.231193 72.434624 2016-06-25 11:25:16 2016
+5 GV37501 2016-06-25 11:30:32  -7.23855 72.434731 2016-06-25 11:30:32 2016
+6 GV37501 2016-06-25 11:36:43 -7.238533 72.434761 2016-06-25 11:36:43 2016
+  TagID DeployID     CPY     CPX Species Population   Age    BreedStage
+1     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+2     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+3     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+4     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+5     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+6     5        1 -7.2386 72.4347     RFB         DG Adult Chick rearing
+       Deploydatetime    Retrievedatetime           dist difftime       netdisp
+1 2016-06-25 10:25:00 2016-06-29 03:32:00   2.356490 [m] 386 secs  64.96002 [m]
+2 2016-06-25 10:25:00 2016-06-29 03:32:00   4.290196 [m] 466 secs  60.84931 [m]
+3 2016-06-25 10:25:00 2016-06-29 03:32:00  32.226707 [m] 503 secs  38.27498 [m]
+4 2016-06-25 10:25:00 2016-06-29 03:32:00 831.906239 [m] 483 secs 870.11594 [m]
+5 2016-06-25 10:25:00 2016-06-29 03:32:00 825.636254 [m] 316 secs  55.51973 [m]
+6 2016-06-25 10:25:00 2016-06-29 03:32:00   3.846024 [m] 371 secs  55.05007 [m]
+        speed turnangle      Lon       Lat
+1 0.006104896 180.00000 72.43471 -7.238462
+2 0.009206429 128.65981 72.43474 -7.238486
+3 0.064069000 112.57414 72.43501 -7.238597
+4 1.722373165 357.05423 72.43462 -7.231193
+5 2.612772957 179.16675 72.43473 -7.238550
+6 0.010366640  60.46122 72.43476 -7.238533</code></pre>
 </div>
 </div>
 <p>Remove intermediate files/objects</p>
@@ -1057,12 +1061,12 @@ Option: Filter by fix quality
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 3 × 8
 # Groups:   Species [1]
-  Species ID      NoPoints NoUniqueDates FirstDate  LastDate   SampleR…¹ Sampl…²
-  &lt;chr&gt;   &lt;chr&gt;      &lt;int&gt;         &lt;int&gt; &lt;date&gt;     &lt;date&gt;         &lt;dbl&gt;   &lt;dbl&gt;
-1 RFB     GV37501      989             5 2016-06-25 2016-06-29      5.37  0.0270
-2 RFB     GV37503     1280             6 2016-06-26 2016-07-01      5.58  0.0789
-3 RFB     GV37734      820             4 2018-07-08 2018-07-11      5.18  0.0183
-# … with abbreviated variable names ¹​SampleRate, ²​SampleRate_se</code></pre>
+  Species ID      NoPoints NoUniqueDates FirstDate  LastDate   SampleRate
+  &lt;chr&gt;   &lt;chr&gt;      &lt;int&gt;         &lt;int&gt; &lt;date&gt;     &lt;date&gt;          &lt;dbl&gt;
+1 RFB     GV37501      989             5 2016-06-25 2016-06-29       5.37
+2 RFB     GV37503     1280             6 2016-06-26 2016-07-01       5.58
+3 RFB     GV37734      820             4 2018-07-08 2018-07-11       5.18
+# ℹ 1 more variable: SampleRate_se &lt;dbl&gt;</code></pre>
 </div>
 </div>
 <p>Create a table of population-level summary statistics:</p>
@@ -1082,12 +1086,11 @@ Option: Filter by fix quality
 <span><span class="va">df_summary_pop</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code># A tibble: 1 × 11
-  Species NoInds NoPoint…¹ FirstDate  LastDate   Point…² Point…³ Dates…⁴ Dates…⁵
-  &lt;chr&gt;    &lt;int&gt;     &lt;int&gt; &lt;date&gt;     &lt;date&gt;       &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;   &lt;dbl&gt;
-1 RFB          3      3089 2016-06-25 2018-07-11   1030.    134.       5   0.577
-# … with 2 more variables: SampleRate_mean &lt;dbl&gt;, SampleRate_se &lt;dbl&gt;, and
-#   abbreviated variable names ¹​NoPoints_total, ²​PointsPerBird,
-#   ³​PointsPerBird_se, ⁴​DatesPerBird, ⁵​DatesPerBird_se</code></pre>
+  Species NoInds NoPoints_total FirstDate  LastDate   PointsPerBird
+  &lt;chr&gt;    &lt;int&gt;          &lt;int&gt; &lt;date&gt;     &lt;date&gt;             &lt;dbl&gt;
+1 RFB          3           3089 2016-06-25 2018-07-11         1030.
+# ℹ 5 more variables: PointsPerBird_se &lt;dbl&gt;, DatesPerBird &lt;dbl&gt;,
+#   DatesPerBird_se &lt;dbl&gt;, SampleRate_mean &lt;dbl&gt;, SampleRate_se &lt;dbl&gt;</code></pre>
 </div>
 </div>
 <p>Remove intermediate files/objects by specifying which objects to keep:</p>
@@ -1183,7 +1186,7 @@ If you see a <code>masking</code> warning these are fine. Watch out for packages
 </div>
 <div class="callout-body-container callout-body">
 <div class="cell">
-<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ropenscilabs/rnaturalearth">rnaturalearth</a></span><span class="op">)</span></span>
+<div class="sourceCode" id="cb91"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://docs.ropensci.org/rnaturalearth/">rnaturalearth</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/ericpante/marmap">marmap</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va"><a href="https://plotly-r.com">plotly</a></span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
@@ -1202,7 +1205,7 @@ If you see a <code>masking</code> warning these are fine. Watch out for packages
 <p>Create a map of all points. Set the plot limits as the max and min lat/longs as the tracking data</p>
 <p>First set up a basemap to plot over: - Use <code>rnaturalearth</code> low resolution countries basemap - co-ordinates in lat/lon to match other spatial data</p>
 <div class="cell">
-<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">countries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/rnaturalearth/man/ne_countries.html">ne_countries</a></span><span class="op">(</span>scale <span class="op">=</span> <span class="st">"medium"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb93"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="va">countries</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://docs.ropensci.org/rnaturalearth/reference/ne_countries.html">ne_countries</a></span><span class="op">(</span>scale <span class="op">=</span> <span class="st">"medium"</span>, returnclass <span class="op">=</span> <span class="st">"sf"</span><span class="op">)</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Define min and max co-ordinates based on extent of tracking data, for adding bathymetry extracted from NOAA database.</p>
 <div class="cell">
@@ -1335,14 +1338,14 @@ If you see a <code>masking</code> warning these are fine. Watch out for packages
 <p>Save maps for further use using <code>ggsave</code> function.</p>
 <div class="cell">
 <div class="sourceCode" id="cb105"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span>plot <span class="op">=</span> <span class="va">map_alllocs</span>, </span>
-<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_map_all_locs.tiff"</span><span class="op">)</span>,</span>
+<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_map_all_locs."</span>, <span class="va">device</span><span class="op">)</span>,</span>
 <span>       device <span class="op">=</span> <span class="va">device</span>,</span>
 <span>       path <span class="op">=</span> <span class="va">out_path</span>, </span>
 <span>       units <span class="op">=</span> <span class="va">units</span>, width <span class="op">=</span> <span class="fl">200</span>, height <span class="op">=</span> <span class="fl">175</span>, dpi <span class="op">=</span> <span class="va">dpi</span>,   </span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span>plot <span class="op">=</span> <span class="va">map_individuals</span>, </span>
-<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_map_individuals.tiff"</span><span class="op">)</span>,</span>
+<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_map_individuals."</span>, <span class="va">device</span><span class="op">)</span>,</span>
 <span>       device <span class="op">=</span> <span class="va">device</span>,</span>
 <span>       path <span class="op">=</span> <span class="va">out_path</span>, </span>
 <span>       units <span class="op">=</span> <span class="va">units</span>, width <span class="op">=</span> <span class="fl">200</span>, height <span class="op">=</span> <span class="fl">175</span>, dpi <span class="op">=</span> <span class="va">dpi</span>,   </span>
@@ -1382,7 +1385,7 @@ Note
 <p>Save plot for further use</p>
 <div class="cell">
 <div class="sourceCode" id="cb107"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span>plot <span class="op">=</span> <span class="va">speed_time_plot</span>, </span>
-<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_speed_timeseries_plot.tiff"</span><span class="op">)</span>,</span>
+<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_speed_timeseries_plot."</span>, <span class="va">device</span><span class="op">)</span>,</span>
 <span>       device <span class="op">=</span> <span class="va">device</span>,</span>
 <span>       path <span class="op">=</span> <span class="va">out_path</span>, </span>
 <span>       units <span class="op">=</span> <span class="va">units</span>, width <span class="op">=</span> <span class="fl">200</span>, height <span class="op">=</span> <span class="fl">175</span>, dpi <span class="op">=</span> <span class="va">dpi</span>  </span>
@@ -1412,7 +1415,7 @@ Note
 <p>Save plot for further use</p>
 <div class="cell">
 <div class="sourceCode" id="cb110"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span>plot <span class="op">=</span> <span class="va">speed_hist</span>, </span>
-<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_speed_histogram.tiff"</span><span class="op">)</span>,</span>
+<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_speed_histogram"</span>, <span class="va">device</span><span class="op">)</span>,</span>
 <span>       device <span class="op">=</span> <span class="va">device</span>,</span>
 <span>       path <span class="op">=</span> <span class="va">out_path</span>,</span>
 <span>       units <span class="op">=</span> <span class="va">units</span>, width <span class="op">=</span> <span class="fl">200</span>, height <span class="op">=</span> <span class="fl">175</span>, dpi <span class="op">=</span> <span class="va">dpi</span>,   </span>
@@ -1439,7 +1442,7 @@ Note
 <p>Save plot for further use</p>
 <div class="cell">
 <div class="sourceCode" id="cb112"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span>plot <span class="op">=</span> <span class="va">step_time_plot</span>, </span>
-<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_step_time_plot.tiff"</span><span class="op">)</span>,</span>
+<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_step_time_plot."</span>, <span class="va">device</span><span class="op">)</span>,</span>
 <span>       device <span class="op">=</span> <span class="va">device</span>,</span>
 <span>       path <span class="op">=</span> <span class="va">out_path</span>,</span>
 <span>       units <span class="op">=</span> <span class="va">units</span>, width <span class="op">=</span> <span class="fl">200</span>, height <span class="op">=</span> <span class="fl">175</span>, dpi <span class="op">=</span> <span class="va">dpi</span>,   </span>
@@ -1461,7 +1464,7 @@ Note
 <p>Save plot for further use</p>
 <div class="cell">
 <div class="sourceCode" id="cb114"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggsave.html">ggsave</a></span><span class="op">(</span>plot <span class="op">=</span> <span class="va">step_hist</span>, </span>
-<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_step_hist.tiff"</span><span class="op">)</span>,</span>
+<span>       filename <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste0</a></span><span class="op">(</span><span class="va">species_code</span>, <span class="st">"_step_hist."</span>, <span class="va">device</span><span class="op">)</span>,</span>
 <span>       device <span class="op">=</span> <span class="va">device</span>,</span>
 <span>       path <span class="op">=</span> <span class="va">out_path</span>,</span>
 <span>       units <span class="op">=</span> <span class="va">units</span>, width <span class="op">=</span> <span class="fl">200</span>, height <span class="op">=</span> <span class="fl">175</span>, dpi <span class="op">=</span> <span class="va">dpi</span>,   </span>

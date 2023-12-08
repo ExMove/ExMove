@@ -42,10 +42,10 @@ This toolkit is meant as an accessible introduction to analysing tracking data u
 
 We provide four diffferent types of tracking data from three different species:
 
-<img src="Data/Illustrations/RFB_image.png" id="id" class="class" width=25% height=25% > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="Data/Illustrations/RFB_IMM_image.png" id="id" class="class" width=25% height=25%  > &nbsp;&nbsp;&nbsp;&nbsp;
-<img src="Data/Illustrations/TRPE_image.png" id="id" class="class" width=10% height=10%> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<img src="Data/Illustrations/GWF_image.png" id="id" class="class" width=25% height=25%  > &nbsp;
+<img src="Documentation/Illustrations/RFB_image.png" id="id" class="class" width=25% height=25% > &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="Documentation/Illustrations/RFB_IMM_image.png" id="id" class="class" width=25% height=25%  > &nbsp;&nbsp;&nbsp;&nbsp;
+<img src="Documentation/Illustrations/TRPE_image.png" id="id" class="class" width=10% height=10%> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<img src="Documentation/Illustrations/GWF_image.png" id="id" class="class" width=25% height=25%  > &nbsp;
 
 #### Tracking data files
 - `Data/RFB` - folder containing GPS tracking data files from three adult Red-footed boobies (*Sula sula*), from two populations
@@ -59,4 +59,3 @@ We provide four diffferent types of tracking data from three different species:
 - `Data/TRPE_Metadata.csv` - metadata file containing information on the Trindade petrel dataset
 - `Data/GWfG_Metadata.csv` - metadata file containing information on the Greenland White-fronted Goose dataset
 - `Data/RFB_CPshape` - folder containing shape files for central place of RFB data
-

@@ -325,7 +325,7 @@ df_metadataslim <- data.frame(ID = as.character(df_metadata$BirdID), # compulsor
                               CPY = df_metadata$NestLat,
                               CPX = df_metadata$NestLong,
                               Species = "RFB",
-                              Population = "Population",
+                              Population = df_metadata$Population,
                               Age = df_metadata$Age,
                               BreedStage = df_metadata$BreedingStage)
 
@@ -497,7 +497,6 @@ transform_crs <- 3857 # Suggest changing if using own data
 
 ## Transform coordinates of data and perform spatial calculations
 df_diagnostic <-  df_clean %>%
-  ungroup() %>% #need to ungroup to extract geometry of the whole dataset
   mutate(geometry_GPS = st_transform( # transform X/Y coordinates to `transform_crs` for distance calculations
             st_as_sf(., coords=c("X","Y"), crs=tracking_crs), crs = transform_crs)$geometry) %>%
   group_by(ID) %>% #back to grouping by ID for calculations per individual
@@ -506,7 +505,7 @@ df_diagnostic <-  df_clean %>%
          netdisp = st_distance(geometry_GPS, geometry_GPS[1], by_element = F)[,1], # calculate distance between first location and current location, by_element = F returns dense matrix with all pairwise distances
          speed = as.numeric(dist)/as.numeric(difftime),                       # calculate speed (distance/time)
          dX = as.numeric(X)-lag(as.numeric(X)), #difference in longitude, relative to previous location
-         dY = as.numeric(Y)-lag(as.numeric(Y)), #difference in longitude, relative to previous location
+         dY = as.numeric(Y)-lag(as.numeric(Y)), #difference in latitude, relative to previous location
          turnangle = atan2(dX, dY)*180/pi + (dX < 0)*360) %>% #angle (in degrees) from previous to current location using formula theta = atan(y/x), where y = change along y axis & x = change along x axis
   ungroup() %>% select(-c(geometry_GPS, dX, dY)) # ungroup and remove geometries
 
@@ -572,7 +571,7 @@ rm(list=ls()[!ls() %in% c("df_diagnostic", "species_code")]) #specify objects to
 
 ## OPTION 2:
 ## Alternatively run the app from your local R session with the following code
-## This willrequire some additonal packages to be installed on the start up of the app but this will happen automatically
+## This will require some additional packages to be installed on the start up of the app but this will happen automatically
 if (!require("shiny")) install.packages("shiny")
 library(shiny)
 runGitHub("ExMove", username = "ExMove",
@@ -583,6 +582,7 @@ runGitHub("ExMove", username = "ExMove",
 ## At the bottom of each app page are printed code chunks that can be copied into subsequent user input sections
 ## Those code chunks contain the user input values you manually select in the app
 
+## If you want to manually define thresholds, skip the app and adjust the values in the code below
 ## If you don't need to filter for outliers, skip this step and keep using df_diagnostic
 
 
@@ -595,7 +595,7 @@ runGitHub("ExMove", username = "ExMove",
 ## For example, to remove potentially unnatural behaviour following the tagging event
 ## This has to be an integer value
 ## change the units within the function (e.g., "min"/"mins"/"hours"/"year"...)
-filter_cutoff <- as.period(30, unit="minutes") 
+filter_cutoff <- as.period(30, unit = "minutes") 
 
 ## Define speed filter in m/s
 ## Any points with faster speeds will be removed
@@ -670,7 +670,7 @@ df_summary_ind
 
 ## create a table of population-level summary statistics
 df_summary_pop <- df_summary_ind %>% # use the individual-level summary data
-  group_by(across(c(grouping_factors_poplevel))) %>%
+  group_by(across(all_of(c(grouping_factors_poplevel)))) %>%
   summarise(NoInds = length(unique(ID)), # number of unique individuals
             NoPoints_total = sum(NoPoints), # total number of tracking locations
             FirstDate = as.Date(min(FirstDate)), # first tracking date
@@ -874,14 +874,14 @@ map_individuals
 # save maps for further use
 # use ggsave function
 ggsave(plot = map_alllocs, 
-       filename = paste0(species_code, "_map_all_locs.tiff"),
+       filename = paste0(species_code, "_map_all_locs.", device),
        device = device,
        path = out_path, 
        units = units, width = 200, height = 175, dpi = dpi,   
 )
 
 ggsave(plot = map_individuals, 
-       filename = paste0(species_code, "_map_individuals.tiff"),
+       filename = paste0(species_code, "_map_individuals.", device),
        device = device,
        path = out_path, 
        units = units, width = 200, height = 175, dpi = dpi,   
@@ -916,7 +916,7 @@ message("Warnings about 'non-finite' values for speed/step length plots are expe
 
 # save plot for further use
 ggsave(plot = speed_time_plot, 
-       filename = paste0(species_code, "_speed_timeseries_plot.tiff"),
+       filename = paste0(species_code, "_speed_timeseries_plot.", device),
        device = device,
        path = out_path, 
        units = units, width = 200, height = 175, dpi = dpi  
@@ -939,7 +939,7 @@ speed_hist <- df_plotting %>%
 
 # save plot for further use
 ggsave(plot = speed_hist, 
-       filename = paste0(species_code, "_speed_histogram.tiff"),
+       filename = paste0(species_code, "_speed_histogram.", device),
        device = device,
        path = out_path,
        units = units, width = 200, height = 175, dpi = dpi,   
@@ -960,7 +960,7 @@ step_time_plot <- df_plotting %>% #step length over time
 
 # save plot for further use
 ggsave(plot = step_time_plot, 
-       filename = paste0(species_code, "_step_time_plot.tiff"),
+       filename = paste0(species_code, "_step_time_plot.", device),
        device = device,
        path = out_path,
        units = units, width = 200, height = 175, dpi = dpi,   
@@ -981,7 +981,7 @@ step_hist <- df_plotting %>% #step histogram
 
 # save plot for further use
 ggsave(plot = step_hist, 
-       filename = paste0(species_code, "_step_hist.tiff"),
+       filename = paste0(species_code, "_step_hist.", device),
        device = device,
        path = out_path,
        units = units, width = 200, height = 175, dpi = dpi,   

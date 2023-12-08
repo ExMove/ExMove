@@ -110,13 +110,15 @@ example_input <- "uservalue" # In the R code, user input sections appear like th
 -   Where you see: `## ** Option ** ##`, there is an alternative version of the code to fit some common alternative data formats
 -   Throughout, we will use some key functions to inspect the data (e.g., `head` for top rows, `str` for column types, and `names` for column names)
 
-##### Required data structure:
--   Data files should all be stored in a specific place — ideally within the `Data` folder
+##### Data and directory structure:
+-   Data files should all be stored within the `Data` folder
+-   Folders and files are best named in `snakecase_format` as spaces in filepaths can cause issues
+-   Tracking data for each deployment/individual should be in a separate file
+-   Tracking data filenames should include an ID which is the same length for all individuals
 -   Tracking data must contain a timestamp and at least one other sensor column
--   Data for each deployment/individual should be in a separate file
--   ID should be in tracking data file name, and should be the same length for all individuals
--   Metadata file should be in parent directory of data files
+-   Metadata file should be in the parent directory of data files
 -   Metadata should contain one row per individual per deployment
+*NB: if you have multiple animal movement projects, these should have completely separate directories*
 
 ##### The importance of ID:
 -   Throughout this workflow, we use ID to refer to the unique code for an individual animal
@@ -126,8 +128,7 @@ example_input <- "uservalue" # In the R code, user input sections appear like th
 -   For more info and helpful code, see the FAQ document & troubleshooting script
 
 ##### How to troubleshoot problems if something doesn't work with your data:
--   Refer to the FAQ document in the GitHub page
--   This signposts to helpful resources online (e.g., spatial co-ordinate systems)
+-   Refer to the FAQ document in the GitHub page, which signposts to helpful resources online (e.g., CRS)
 -   See the troubleshooting code scripts that we've written to accompany this workflow (e.g., using multiple ID columns for re-deployments of tags/individuals)
 -   All functions in code chunks are automatically hyperlinked to their documentation, so feel free to explore this if you want to understand more about how this code works!
 
@@ -151,19 +152,19 @@ library(here) # reproducible filepaths
 ::: {.callout-warning icon="false"}
 #### 🧠 User input required
 
-Throughout the script, we'll be saving files using a species code as a file/folder identifier. Let's define this object here for consistency:
+Throughout the script, we'll be saving files using a species code as a file/folder identifier. Our code is taken from the first letters of the species name (**R**ed **F**ooted **B**ooby) but can be anything you choose (shorter the better as long as it's unique per species). Let's define this object first for consistency:
 
 ```{r}
 species_code <- "RFB"
 ```
 
-Set filepath for the folder containing raw data files (this code will try to list and open all files matching the file pattern within this folder, so it is best if this folder contains only the raw data files).
+Set filepath for the folder containing raw data files (this code will try to list and open all files matching the file pattern within this folder, so it is best if this folder contains only the raw data files). ***NB:*** *if you are working outside of a project, you'll need to check that `{here}` is using the correct working directory.*
 
 ```{r}
-filepath <- here("Data", "RFB")  #create relative filepath using folder names
+filepath <- here("Data", species_code)  #create relative filepath using folder name and species code
 ```
 
-Define common file pattern to look for. An asterisk (`*`) is the wildcard, will will match any character except a forward-slash (e.g. `*.csv` will import all files that end with ".csv").
+Define common file pattern to look for. An asterisk (`*`) is the wildcard, will match any character except a forward-slash (e.g. `*.csv` will import all files that end with ".csv").
 
 ```{r}
 filepattern <- "*.csv" # data file format
@@ -177,7 +178,7 @@ ls_filenames
 ```
 
 Adjust these numbers for extracting the ID number from file name using [`stringr`](https://stringr.tidyverse.org/index.html) (e.g. to extract `GV37501` from "GV37501_201606_DG_RFB.csv", we want characters 1-7). </br>
-**NB:** this approach only works if all ID's are the same length and in the same position --- see the [`str_sub`](https://stringr.tidyverse.org/reference/str_sub.html) documentation for other options.
+***NB:*** *this approach only works if all ID's are the same length and in the same position --- see the [`str_sub`](https://stringr.tidyverse.org/reference/str_sub.html) documentation for other options.*
 
 ```{r}
 IDstart <- 1 #start position of the ID in the filename 
@@ -304,7 +305,7 @@ df_combined
 #### 🧠 User input required
 
 First, data need a time stamp, either in separate columns (e.g., "Date" and "Time") or combined ("DateTime"). Below we specify which column's date and time info are stored in the data. </br>
-**NB:** These have to be in the same order as specified in earlier user input, i.e. "Date" and "Time" have to be the right way round
+***NB:*** *These have to be in the same order as specified in earlier user input, i.e. "Date" and "Time" have to be the right way round*
 
 ```{r}
 datetime_formats # previously specified datetime formats
@@ -453,7 +454,7 @@ names(df_metadata)
 ::: {.callout-warning icon="false"}
 #### 🧠 User input required
 
-Then we select necessary comments & coerce column names, making sure to provide four compulsory columns: **ID**  --- as defined in tracking data (individual **ID** or **TagID**), **deployment date** & **deployment time**. We can also provide optional columns depending on sensor type: e.g. colony, sex, age. You can add or delete other columns where appropriate.
+Then we select necessary columns & create a new complete dataframe, making sure to provide four compulsory columns: **ID**  --- as defined in tracking data (individual **ID** or **TagID**), **deployment date** & **deployment time**. We can also provide optional columns depending on sensor type: e.g. colony, sex, age. You can add or delete other columns where appropriate.
 
 If you have multiple ID columns like TagID/DeployID, include them here (for example, if one individual was tracked over multiple deployments/years, or if one tag was re-deployed on multiple individuals). For more information and helpful code, see the [FAQ document](FAQ's.html) and [troubleshooting script](https://github.com/ExMove/ExMove/blob/main/R/Troubleshoot_Multiple%20ID%20columns.R).
 
@@ -472,7 +473,7 @@ df_metadataslim <- data.frame(ID = as.character(df_metadata$BirdID), # compulsor
                               CPY = df_metadata$NestLat,
                               CPX = df_metadata$NestLong,
                               Species = "RFB",
-                              Population = "Population",
+                              Population = df_metadata$Population,
                               Age = df_metadata$Age,
                               BreedStage = df_metadata$BreedingStage)
 ```
@@ -599,7 +600,7 @@ head(df_clean)
 ## Option: Filter by fix quality
 
 Argos fix quality can be used to filter the data set to remove locations with too much uncertainty. If you know the error classes that you want to retain in a dataset, you can run this filter below. </br>
-**NB:** If you want to do further exploration of location quality (e.g., from GPS PTT tags to compare locations with contemporaneous GPS locations), keep all location classes by skipping this step.
+***NB:*** *If you want to do further exploration of location quality (e.g., from GPS PTT tags to compare locations with contemporaneous GPS locations), keep all location classes by skipping this step.*
 
 In this example we define a vector of location classes to keep (typically, location classes 1, 2, and 3 are of sufficient certainty), and filter out everything else.
 
@@ -636,14 +637,14 @@ meta_crs <- 4326 # Only change if data are in a different coordinate system
 
 Next we transform coordinates of data, and perform spatial calculations. This requires spatial analysis, and so it is good practice to run all spatial analyses in a coordinate reference system that uses metres as a unit.
 
-The default CRS for this workflow is the Spherical Mercator projection — *aka* "WGS" (`crs = 3857`), which is used by Google maps and works worldwide. However, WGS can over-estimate distance calculations in some cases, so it's important to consider the location and scale of your data (e.g., equatorial/polar/local scale/global scale) and choose a projection system to match. Other options include (but are not limited to) UTM, and Lambert azimuthal equal-area (LAEA).
+The default CRS for this workflow is the [Spherical Mercator projection](https://epsg.io/3857) — (`crs = 3857`), which is used by Google Maps/OpenStreetMap and works worldwide. However, this CRS can over-estimate distance calculations in some cases, so it's important to consider the location and scale of your data (e.g., equatorial/polar/local scale/global scale) and choose a projection system to match. Other options include (but are not limited to) UTM, and Lambert Azimuthal Equal-Area (LAEA) projections.
 
 ```{r}
 transform_crs <- 3857
 ```
 :::
 
-Here we'll calculate bearings relative to first location.
+Here we'll calculate some useful movement metrics from the tracking data, including distance between fixes, time between fixes, and net displacement from the first fix.
 
 ```{r}
 df_diagnostic <-  df_clean %>%
@@ -746,6 +747,8 @@ runGitHub("ExMoveApp", username = "LukeOzsanlav",
 - At the bottom of each app page are printed code chunks that can be copied into subsequent user input section. These code chunks contain the user input values you manually select in the app
 
 #### Define threshold values
+
+For this section, you can either use the code chunks produced by the Shiny app, or manually define the threshold values yourself. If you're using the Shiny app, you can copy the code chunks from the bottom of each page to replace the user input section below. If you're manually defining the threshold values, you can edit each of the variables below as you would for any of the user input sections (we have suggested some for the RFB dataset).
 
 ::: {.callout-warning icon="false"}
 #### 🧠 User input required
@@ -1124,14 +1127,14 @@ Save maps for further use using `ggsave` function.
 ```{r}
 #| eval: false
 ggsave(plot = map_alllocs, 
-       filename = paste0(species_code, "_map_all_locs.tiff"),
+       filename = paste0(species_code, "_map_all_locs.", device),
        device = device,
        path = out_path, 
        units = units, width = 200, height = 175, dpi = dpi,   
 )
 
 ggsave(plot = map_individuals, 
-       filename = paste0(species_code, "_map_individuals.tiff"),
+       filename = paste0(species_code, "_map_individuals.", device),
        device = device,
        path = out_path, 
        units = units, width = 200, height = 175, dpi = dpi,   
@@ -1166,7 +1169,7 @@ Save plot for further use
 ```{r}
 #| eval: false
 ggsave(plot = speed_time_plot, 
-       filename = paste0(species_code, "_speed_timeseries_plot.tiff"),
+       filename = paste0(species_code, "_speed_timeseries_plot.", device),
        device = device,
        path = out_path, 
        units = units, width = 200, height = 175, dpi = dpi  
@@ -1194,7 +1197,7 @@ Save plot for further use
 ```{r}
 #| eval: false
 ggsave(plot = speed_hist, 
-       filename = paste0(species_code, "_speed_histogram.tiff"),
+       filename = paste0(species_code, "_speed_histogram", device),
        device = device,
        path = out_path,
        units = units, width = 200, height = 175, dpi = dpi,   
@@ -1223,7 +1226,7 @@ Save plot for further use
 ```{r}
 #| eval: false
 ggsave(plot = step_time_plot, 
-       filename = paste0(species_code, "_step_time_plot.tiff"),
+       filename = paste0(species_code, "_step_time_plot.", device),
        device = device,
        path = out_path,
        units = units, width = 200, height = 175, dpi = dpi,   
@@ -1250,7 +1253,7 @@ Save plot for further use
 
 ```{r eval=FALSE}
 ggsave(plot = step_hist, 
-       filename = paste0(species_code, "_step_hist.tiff"),
+       filename = paste0(species_code, "_step_hist.", device),
        device = device,
        path = out_path,
        units = units, width = 200, height = 175, dpi = dpi,   

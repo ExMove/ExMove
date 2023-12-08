@@ -3,7 +3,6 @@
 
 
 ## packages required
-## ggnewscale is used quite a lot but would be a good dependency to lose. Will have a look how to remove later on
 pacman::p_load(tidyverse, lubridate, sf, shiny, shinydashboard, rnaturalearth, DT, shinyBS, leaflet, ggnewscale)
 
 ## Bring in additional functions from utils.R file
@@ -843,7 +842,6 @@ server <- function(input, output, session) {
             ## For example, to remove potentially unnatural behaviour following the tagging event
             ## This has to be an integer value
             ## change the units within the function (e.g., "min"/"mins"/"hours"/"year"...)
-                  
             filter_cutoff <- as.period(',tracks$PostDepFilt,', unit="hours") 
                   
             ## Define speed filter in m/s
@@ -852,6 +850,7 @@ server <- function(input, output, session) {
                   
             ## Define net displacement filter and specify units
             ## Any points further away from the first tracking point will be removed
+            ## If you want to retain points no matter the net displacement value then run `filter_netdisp_dist <- max(df_diagnostic$netdisp)` and `filter_netdist_units <- "m`
             filter_netdisp_dist <- ',tracks$NetDistFilt,'
             filter_netdist_units <- "km" # e.g., "m", "km"
                   
@@ -942,7 +941,7 @@ server <- function(input, output, session) {
     if(is.null(RAW$data)==F & suppressWarnings({is.null(RAW$data$CPdist)==T}) )return(paste0("**No Central Place Distance, Can't Calculate Trips**"))
     
     ## if there are data but trips have not been calcualted then display this message (Need to have CPdist)
-    if(is.null(RAW$data)==F & suppressWarnings({is.null(RAW$data$CPdist)==F}) & is.null(trips$data)==T)return(paste0("Data Chosen - Calcualte Trips with Green Button"))
+    if(is.null(RAW$data)==F & suppressWarnings({is.null(RAW$data$CPdist)==F}) & is.null(trips$data)==T)return(paste0("Data Chosen - Calculate Trips with Green Button"))
     
     ## make message disappear
     if(is.null(RAW$data)==F & suppressWarnings({is.null(RAW$data$CPdist)==F}) & is.null(trips$data)==F)return(paste0(""))
@@ -1709,11 +1708,19 @@ server <- function(input, output, session) {
           '#--------------------#
             ##USER INPUT START##
             #--------------------#
+          
+            ## NOTE: these two chuncks need to be copied into different places in `Optional Processing_Central place trips.R`
             
-            ## add a threshold distance
+            ## Chunck 1
+            # define distance threshold for defining CP attendance
+            # locations < threshold_dist will be defined as at CP
+            # locations > threshold_dist will be defined as a trip
+          
             threshold_dist <- ',trips$ColBuffer*1000,' #distance in metres
             
-            ## add a threshold for time
+            ## Chunck 2
+            # add a threshold for time
+          
             threshold_time <- ',trips$MinDuration,' #time in minutes
             
             #-----------------#
