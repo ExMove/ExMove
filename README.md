@@ -1,5 +1,5 @@
 # ExMove
-This toolkit is meant as an accessible introduction to analysing tracking data using R. We make use of the [tidyverse](https://www.tidyverse.org/packages/) collection and simple features ([sf](https://r-spatial.github.io/sf/index.html)) packages to read, clean and process multiple data files, ready for a range of analyses. Go to the workflow script by clicking [here](R/Workflow.R), and view a fully worked example by clicking [here](Worked example_figure.pdf).
+This toolkit is meant as an accessible introduction to analysing tracking data using R. We make use of the [tidyverse](https://www.tidyverse.org/packages/) collection and simple features ([sf](https://r-spatial.github.io/sf/index.html)) packages to read, clean and process multiple data files, ready for a range of analyses. Go to the workflow script by clicking [here](R/Workflow.R), and view a fully worked example by clicking [here](Worked_example_figure.pdf).
 
 #### _Authors_:
 
