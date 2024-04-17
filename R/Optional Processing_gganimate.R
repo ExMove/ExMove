@@ -14,10 +14,10 @@
 # This code can be used to animate animal movement data using the {gganimate} package
 # It works by first creating a static ggplot object with all the data plotted
 # We then add some functions from {gganimate} to specify how we want the animation to work
-# Finally we can animate the plot and how in RStudio, or save it to file
-# There is additional commented code for including map tiles but an API is needed for this
+# Finally we can animate the plot and view in RStudio, or save it to file
+# There is additional commented code for including map tiles but an API key is needed for this
 
-# Some of the below code inspired by Hansen Johnson: https://hansenjohnson.org/post/animate-movement-in-r/
+# Some of the below code is inspired by Hansen Johnson: https://hansenjohnson.org/post/animate-movement-in-r/
 # For more info see documentation for {gganimate}(https://gganimate.com/) and {ggmap}(https://github.com/dkahle/ggmap)
 
 #-------------------------------#
@@ -84,7 +84,7 @@ anim <- plot +
 # Test animation to render within RStudio (not smoothed or saved)
 #animate(anim, nframes = 300, fps = 10, detail = 20)
 
-# Calculate duration of data from plot (hours) to help choose duration of animation
+# Calculate duration of data from plot (in hours) to help decide duration of animation
 anim_duration <- as.duration(max(plot$layers[[2]][["data"]]$DateTime)-
                                min(plot$layers[[2]][["data"]]$DateTime)) %>%
   as.integer(.,"hours") #convert to hours
@@ -92,7 +92,7 @@ anim_duration <- as.duration(max(plot$layers[[2]][["data"]]$DateTime)-
 # Save animation to file as gif (can ignore warning - we only have one individual)
 anim_save(animation = anim, #name of animation object
           filename = here("DataOutputs", "Figures", "RFB_animation.gif"), #save location/name
-          nframes = anim_duration*4, #4 number of frames for every hour of data (as above)
+          nframes = 4*anim_duration, #4 frames for every hour of data (as above)
           detail = 20, #how many extra frames to add between each nframe (increase for smoother animation)
           height = 5, width = 5, units = "in", res = 150) #size and resolution of output
             
