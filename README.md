@@ -20,7 +20,7 @@ This toolkit is meant as an accessible introduction to analysing tracking data u
 
 ### Do want to use GitHub?
 
-1.  Clone or fork this repo (for additional GitHub guidance see: [setting up GitHub](https://intro2r.com/setup_git.html) | [cloning a repo](https://intro2r.com/setting-up-a-project-in-rstudio.html) | [forking a repo](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo)| [using GitHub with RStudio](https://intro2r.com/use_git.html))
+1.  Clone or fork this repo (for additional GitHub guidance see: [setting up GitHub](https://intro2r.com/setup_git.html) | [cloning a repo](https://intro2r.com/setting-up-a-project-in-rstudio.html) | [forking a repo](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/fork-a-repo) | [using GitHub with RStudio](https://intro2r.com/use_git.html))
 2.  Start by opening the `ExMove.Rproj` file (which will open a new instance of R studio)
 3.  Open the `Workflow.R` file, and start by running on one of our three example datasets (currently `RFB`, but can be changed to `RFB_IMM`, `TRPE`, or `GWFG`)
 4.  If you want to run analyses on your own data, start by copying a folder of datafiles and metadata into `Data` (described in the `Documentation/User guide.html` file)
