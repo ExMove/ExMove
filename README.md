@@ -61,3 +61,11 @@ We provide four diffferent types of tracking data from three different species:
 - `Data/TRPE_Metadata.csv` - metadata file containing information on the Trindade petrel dataset
 - `Data/GWfG_Metadata.csv` - metadata file containing information on the Greenland White-fronted Goose dataset
 - `Data/RFB_CPshape` - folder containing shape files for central place of RFB data
+
+### Data and Code Archive
+
+All data and code for this manuscript has also been archived in the Zenodo digital repository: https://doi.org/10.5281/zenodo.10993581.
+
+Data and code from the ExMove toolkit should be referenced using the following citation:
+
+Langley, L.P., Lang, S.D.J., Ozsanlav-Harris, L., Trevail, A.M. (2024). Data and code from: ExMove: An open-source toolkit for processing and exploring animal tracking data in R. Zenodo digital repository. https://doi.org/10.5281/zenodo.10993581.
