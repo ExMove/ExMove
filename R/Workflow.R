@@ -83,7 +83,7 @@ species_code <- "RFB"
 ## Set filepath for folder containing raw data files
 ## NB: this code will try to open all files matching the file pattern within this folder
 ## Therefore, it is best if this folder only contains the raw data files
-filepath <- here("Data", "RFB") 
+filepath <- here("Data", species_code) 
 
 ## Define common file pattern to look for
 ## An asterisk (*) matches any character except a forward-slash
@@ -264,8 +264,9 @@ rm(list=ls()[!ls() %in% c("df_raw","date_formats","datetime_formats","trackingda
 ## USER INPUT START ##
 #--------------------#
 
+metadata_path <- glue::glue("{species_code}_Metadata.csv")
 ## set file path to metadata
-filepath_meta <- here("Data","RFB_Metadata.csv")
+filepath_meta <- here("Data", metadata_path)
 
 ## define metadata date and time format(s) used (for passing to lubridate)
 ## "d"=day as decimal, "m"=month as decimal, "y"=year w/o century, "Y"=year w/ century
@@ -324,7 +325,7 @@ df_metadataslim <- data.frame(ID = as.character(df_metadata$BirdID), # compulsor
                               RetrieveTime_local = df_metadata$RetrievalTime, # compulsory column (set to NA if not relevant)
                               CPY = df_metadata$NestLat,
                               CPX = df_metadata$NestLong,
-                              Species = "RFB",
+                              Species = species_code,
                               Population = df_metadata$Population,
                               Age = df_metadata$Age,
                               BreedStage = df_metadata$BreedingStage)
@@ -342,7 +343,7 @@ df_metadataslim <- data.frame(ID = as.character(df_metadata$BirdID), # compulsor
 #                               RetrieveTime_local = NA, # compulsory column (set to NA if not relevant)
 #                               DeployY = df_metadata$lat,
 #                               DeployX = df_metadata$long,
-#                               Species = "RFB",
+#                               Species = species_code,
 #                               Age = df_metadata$age)
 
 
