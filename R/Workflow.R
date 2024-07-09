@@ -264,8 +264,8 @@ rm(list=ls()[!ls() %in% c("df_raw","date_formats","datetime_formats","trackingda
 ## USER INPUT START ##
 #--------------------#
 
-metadata_path <- glue::glue("{species_code}_Metadata.csv")
 ## set file path to metadata
+metadata_path <- paste0(species_code, "_Metadata.csv")
 filepath_meta <- here("Data", metadata_path)
 
 ## define metadata date and time format(s) used (for passing to lubridate)
