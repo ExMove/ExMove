@@ -194,8 +194,8 @@ datetime_colnames <- c("Date", "Time") # or c("DateTime")
 df_slim <- data.frame(ID = as.character(df_combined$ID),
                       Date = df_combined$Date,
                       Time = df_combined$Time,
-                      Y = df_combined$Latitude,
-                      X = df_combined$Longitude)
+                      Y = as.numeric(df_combined$Latitude),
+                      X = as.numeric(df_combined$Longitude))
 
 
 ## ** Optional ** ##
